@@ -1,0 +1,78 @@
+.dashboard-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffe5e5 0%, #fff5f5 100%);
+}
+
+.dashboard-header {
+  background: white;
+  padding: 20px 40px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-header h1 {
+  color: #dc3545;
+  font-size: 24px;
+  margin: 0;
+}
+
+.btn-logout {
+  padding: 10px 24px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-logout:hover {
+  background-color: #c82333;
+}
+
+.dashboard-content {
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.welcome-card {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.welcome-card h2 {
+  color: #dc3545;
+  margin-bottom: 15px;
+}
+
+.welcome-card p {
+  color: #666;
+  font-size: 16px;
+  margin: 8px 0;
+}
+
+.welcome-card strong {
+  color: #333;
+  text-transform: capitalize;
+}
+
+.info-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.info-card p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
