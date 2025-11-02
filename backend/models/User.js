@@ -38,8 +38,43 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
     },
-    address: {
+    location: {
+      address: {
+        type: String,
+      },
+      coordinates: {
+        lat: {
+          type: Number,
+        },
+        lng: {
+          type: Number,
+        },
+      },
+    },
+    profilePicture: {
+      url: {
+        type: String,
+      },
+      publicId: {
+        type: String,
+      },
+    },
+    isProfileComplete: {
+      type: Boolean,
+      default: false,
+    },
+    // Donation-specific fields (for donors only)
+    totalDonations: {
+      type: Number,
+      default: 0,
+    },
+    lastDonationDate: {
+      type: Date,
+    },
+    donorEligibility: {
       type: String,
+      enum: ["eligible", "not-eligible", "not-recorded"],
+      default: "not-recorded",
     },
     isActive: {
       type: Boolean,

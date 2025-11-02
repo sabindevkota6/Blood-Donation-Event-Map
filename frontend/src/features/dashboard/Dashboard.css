@@ -18,6 +18,12 @@
   margin: 0;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .btn-logout {
   padding: 10px 24px;
   background-color: #dc3545;
@@ -75,4 +81,41 @@
   color: #666;
   font-size: 16px;
   margin: 0;
+}
+
+.btn-view-profile,
+.btn-complete-profile {
+  margin-top: 16px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-view-profile {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-view-profile:hover {
+  background: #c82333;
+}
+
+.btn-complete-profile {
+  background: #ffc107;
+  color: #333;
+}
+
+.btn-complete-profile:hover {
+  background: #ffb300;
+}
+
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+  font-size: 18px;
 }

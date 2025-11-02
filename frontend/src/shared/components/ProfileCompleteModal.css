@@ -1,0 +1,79 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 450px;
+  width: 90%;
+  text-align: center;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffe5e5 0%, #ffcccc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  font-size: 40px;
+}
+
+.modal-content h2 {
+  color: #dc3545;
+  font-size: 28px;
+  margin-bottom: 16px;
+}
+
+.modal-content p {
+  color: #666;
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.btn-continue {
+  width: 100%;
+  padding: 14px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-continue:hover {
+  background-color: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}

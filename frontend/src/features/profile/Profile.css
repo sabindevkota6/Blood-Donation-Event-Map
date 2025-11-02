@@ -1,0 +1,289 @@
+.profile-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffe5e5 0%, #fff5f5 100%);
+}
+
+.profile-header {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px 40px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.back-btn:hover {
+  background: #e0e0e0;
+}
+
+.header-left h1 {
+  color: #dc3545;
+  font-size: 20px;
+  margin: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.logout-btn {
+  padding: 8px 20px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.logout-btn:hover {
+  background: #c82333;
+}
+
+.profile-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+.profile-title-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.profile-title-section h2 {
+  color: #dc3545;
+  font-size: 28px;
+  margin: 0;
+}
+
+.edit-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.edit-profile-btn:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+}
+
+.profile-card {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.card-title {
+  color: #dc3545;
+  font-size: 18px;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.personal-info-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 40px;
+}
+
+.info-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.role-badge {
+  background: #dc3545;
+  color: white;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #dc3545;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.info-icon {
+  color: #dc3545;
+  font-size: 14px;
+}
+
+.info-item p {
+  color: #333;
+  font-size: 16px;
+  margin: 0;
+}
+
+.blood-type-badge {
+  display: inline-block;
+  background: #dc3545;
+  color: white;
+  padding: 4px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.eligibility-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.eligibility-badge.eligible {
+  background: #4caf50;
+  color: white;
+}
+
+.eligibility-badge.not-eligible {
+  background: #f44336;
+  color: white;
+}
+
+.eligibility-badge.not-recorded {
+  background: #999;
+  color: white;
+}
+
+.achievements-section,
+.donations-section {
+  margin-top: 30px;
+}
+
+.achievements-section h4,
+.donations-section h4 {
+  color: #333;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.achievements-empty,
+.donations-empty {
+  background: #f9f9f9;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+}
+
+.achievements-empty p,
+.donations-empty p {
+  color: #999;
+  margin: 0;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+  font-size: 18px;
+}
+
+.error {
+  color: #dc3545;
+}
+
+@media (max-width: 968px) {
+  .personal-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-left {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-content {
+    padding: 20px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .header-left,
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

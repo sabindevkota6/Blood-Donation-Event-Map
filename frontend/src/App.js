@@ -9,6 +9,9 @@ import { AuthProvider, useAuth } from "./shared/context/AuthContext";
 import Login from "./features/auth/Login";
 import Register from "./features/register/Register";
 import Dashboard from "./features/dashboard/Dashboard";
+import ProfileSetup from "./features/profile/ProfileSetup";
+import Profile from "./features/profile/Profile";
+import EditProfile from "./features/profile/EditProfile";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -58,6 +61,30 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile-setup"
+            element={
+              <ProtectedRoute>
+                <ProfileSetup />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/edit"
+            element={
+              <ProtectedRoute>
+                <EditProfile />
               </ProtectedRoute>
             }
           />
