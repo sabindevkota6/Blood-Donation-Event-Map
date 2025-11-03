@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import { OpenStreetMapProvider } from 'leaflet-geosearch';
 import { FaArrowLeft } from 'react-icons/fa';
 import { useAuth } from '../../shared/context/AuthContext';
 import profileService from '../../shared/services/profileService';
+import Navbar from '../../shared/components/Navbar';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-geosearch/dist/geosearch.css';
 import './EditProfile.css';
 import L from 'leaflet';
 
@@ -16,14 +19,73 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-function LocationMarker({ position, setPosition }) {
+// Reverse geocoding function
+const reverseGeocode = async (lat, lng) => {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
+    );
+    const data = await response.json();
+    return data.display_name || 'Location selected';
+  } catch (error) {
+    console.error('Reverse geocoding error:', error);
+    return 'Location selected';
+  }
+};
+
+// Component to handle map location button
+function LocationButton({ onLocationSelect }) {
+  const map = useMap();
+
+  const handleLocationClick = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          const address = await reverseGeocode(latitude, longitude);
+          onLocationSelect({ lat: latitude, lng: longitude }, address);
+          map.flyTo([latitude, longitude], 15);
+        },
+        (error) => {
+          alert('Unable to get your location. Please select manually on the map.');
+        }
+      );
+    } else {
+      alert('Geolocation is not supported by your browser.');
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      className="current-location-btn"
+      onClick={handleLocationClick}
+      title="Go to my location"
+    >
+      📍 My Location
+    </button>
+  );
+}
+
+function LocationMarker({ position, onLocationSelect }) {
+  const map = useMap();
+
   useMapEvents({
-    click(e) {
-      setPosition(e.latlng);
+    async click(e) {
+      const { lat, lng } = e.latlng;
+      const address = await reverseGeocode(lat, lng);
+      onLocationSelect({ lat, lng }, address);
     },
   });
 
-  return position === null ? null : <Marker position={position}></Marker>;
+  // Update map view when position changes externally
+  React.useEffect(() => {
+    if (position && map) {
+      map.flyTo([position.lat, position.lng], 15);
+    }
+  }, [position, map]);
+
+  return position === null ? null : <Marker position={[position.lat, position.lng]}></Marker>;
 }
 
 function EditProfile() {
@@ -31,8 +93,12 @@ function EditProfile() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showResults, setShowResults] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const providerRef = useRef(new OpenStreetMapProvider());
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -71,6 +137,43 @@ function EditProfile() {
       setLoading(false);
     }
   };
+
+  // Optimized location selection handler
+  const handleLocationSelect = useCallback((position, address) => {
+    setFormData(prev => ({
+      ...prev,
+      position,
+      address,
+    }));
+  }, []);
+
+  // Handle search with optimization
+  const handleSearch = useCallback(async (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    
+    if (query.length > 2) {
+      try {
+        const results = await providerRef.current.search({ query });
+        setSearchResults(results.slice(0, 5)); // Limit to 5 results
+        setShowResults(true);
+      } catch (error) {
+        console.error('Search error:', error);
+        setSearchResults([]);
+      }
+    } else {
+      setSearchResults([]);
+      setShowResults(false);
+    }
+  }, []);
+
+  // Handle search result selection
+  const handleSelectResult = useCallback((result) => {
+    const position = { lat: result.y, lng: result.x };
+    handleLocationSelect(position, result.label);
+    setSearchQuery('');
+    setShowResults(false);
+  }, [handleLocationSelect]);
 
   const handleChange = (e) => {
     setFormData({
@@ -140,11 +243,9 @@ function EditProfile() {
 
   return (
     <div className="edit-profile-container">
+      <Navbar />
       <div className="edit-profile-card">
         <div className="edit-header">
-          <button className="back-btn" onClick={() => navigate('/profile')}>
-            <FaArrowLeft /> Back to Profile
-          </button>
           <h1>Edit Profile</h1>
         </div>
 
@@ -214,22 +315,48 @@ function EditProfile() {
 
           <div className="form-section">
             <h3>Location</h3>
-            <div className="form-group">
-              <label>Address</label>
+            
+            {/* Search box */}
+            <div className="search-container">
               <input
                 type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Enter your address"
+                placeholder="Search for a location..."
+                value={searchQuery}
+                onChange={handleSearch}
+                className="search-input"
               />
+              {showResults && searchResults.length > 0 && (
+                <div className="search-results">
+                  {searchResults.map((result, index) => (
+                    <div
+                      key={index}
+                      className="search-result-item"
+                      onClick={() => handleSelectResult(result)}
+                    >
+                      📍 {result.label}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <p className="help-text">Click on the map to update your location</p>
+
+            {/* Selected address display */}
+            {formData.address && (
+              <div className="selected-address">
+                <strong>Selected Address:</strong> {formData.address}
+              </div>
+            )}
+
+            <p className="help-text">
+              Search for a location or click on the map to update your location
+            </p>
+            
             <div className="map-wrapper">
               <MapContainer
-                center={formData.position || [27.7172, 85.324]}
+                center={formData.position ? [formData.position.lat, formData.position.lng] : [27.7172, 85.324]}
                 zoom={13}
                 className="edit-map"
+                scrollWheelZoom={true}
               >
                 <TileLayer
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -237,18 +364,13 @@ function EditProfile() {
                 />
                 <LocationMarker
                   position={formData.position}
-                  setPosition={(pos) =>
-                    setFormData({ ...formData, position: pos })
-                  }
+                  onLocationSelect={handleLocationSelect}
+                />
+                <LocationButton
+                  onLocationSelect={handleLocationSelect}
                 />
               </MapContainer>
             </div>
-            {formData.position && (
-              <p className="location-coords">
-                Selected: {formData.position.lat.toFixed(4)},{' '}
-                {formData.position.lng.toFixed(4)}
-              </p>
-            )}
           </div>
 
           <div className="form-actions">

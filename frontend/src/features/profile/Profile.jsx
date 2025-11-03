@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaEdit, FaPhone, FaMapMarkerAlt, FaEnvelope, FaTint } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit, FaPhone, FaMapMarkerAlt, FaEnvelope, FaTint, FaUser, FaCalendarAlt, FaAward } from 'react-icons/fa';
 import { useAuth } from '../../shared/context/AuthContext';
 import profileService from '../../shared/services/profileService';
 import Avatar from '../../shared/components/Avatar';
+import Navbar from '../../shared/components/Navbar';
 import './Profile.css';
 
 function Profile() {
@@ -62,88 +63,102 @@ function Profile() {
 
   return (
     <div className="profile-page">
-      {/* Header */}
-      <div className="profile-header">
-        <div className="header-content">
-          <div className="header-left">
-            <button className="back-btn" onClick={() => navigate('/dashboard')}>
-              <FaArrowLeft /> Back to Home
-            </button>
-            <h1>Blood Donation Map</h1>
-          </div>
-          <div className="header-right">
-            <Avatar 
-              src={profileData?.profilePicture?.url} 
-              name={profileData?.fullName}
-              size="small" 
-            />
-            <span className="header-name">{profileData?.fullName}</span>
-            <button className="logout-btn" onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Navigation Bar */}
+      <Navbar />
 
       {/* Main Content */}
-      <div className="profile-content">
-        {/* Profile Title */}
-        <div className="profile-title-section">
-          <h2>My Profile</h2>
-          <button className="edit-profile-btn" onClick={() => navigate('/profile/edit')}>
+      <div className="profile-container">
+        {/* Back Button and Title */}
+        <div className="profile-header">
+          <button className="back-link" onClick={() => navigate('/dashboard')}>
+            <FaArrowLeft /> Back to Home
+          </button>
+        </div>
+
+        <div className="profile-title-bar">
+          <h1 className="profile-title">My Profile</h1>
+          <button className="edit-btn" onClick={() => navigate('/profile/edit')}>
             <FaEdit /> Edit Profile
           </button>
         </div>
 
         {/* Personal Information Card */}
-        <div className="profile-card">
-          <h3 className="card-title">Personal Information</h3>
-          <div className="personal-info-grid">
-            <div className="info-left">
+        <div className="info-card">
+          <h2 className="section-title">Personal Information</h2>
+          <div className="info-layout">
+            {/* Left Column - Avatar and Button */}
+            <div className="info-left-column">
               <Avatar 
                 src={profileData?.profilePicture?.url} 
                 name={profileData?.fullName}
                 size="large" 
               />
-              <div className="role-badge">{profileData?.role}</div>
+              <button className="donor-btn">Donor</button>
             </div>
-            <div className="info-right">
-              <div className="info-grid">
-                <div className="info-item">
-                  <label><FaEnvelope className="info-icon" /> Name</label>
-                  <p>{profileData?.fullName || 'Not provided'}</p>
+
+            {/* Right Column - Info Grid */}
+            <div className="info-right-column">
+              <div className="info-row">
+                <div className="info-field">
+                  <div className="field-label">
+                    <FaUser className="field-icon" /> Name
+                  </div>
+                  <div className="field-value">{profileData?.fullName || 'Not provided'}</div>
                 </div>
-                <div className="info-item">
-                  <label><FaTint className="info-icon" /> Blood Type</label>
-                  <p className="blood-type-badge">{profileData?.bloodType || 'Not provided'}</p>
+                <div className="info-field">
+                  <div className="field-label">
+                    <FaTint className="field-icon" /> Blood Type
+                  </div>
+                  <div className="field-value">{profileData?.bloodType || 'Not provided'}</div>
                 </div>
-                <div className="info-item">
-                  <label><FaEnvelope className="info-icon" /> Email</label>
-                  <p>{profileData?.email || 'Not provided'}</p>
+              </div>
+
+              <div className="info-row">
+                <div className="info-field">
+                  <div className="field-label">
+                    <FaEnvelope className="field-icon" /> Email
+                  </div>
+                  <div className="field-value">{profileData?.email || 'Not provided'}</div>
                 </div>
-                <div className="info-item">
-                  <label><FaTint className="info-icon" /> Last Donation</label>
-                  <p>{formatDate(profileData?.lastDonationDate)}</p>
+                <div className="info-field">
+                  <div className="field-label">
+                    <FaCalendarAlt className="field-icon" /> Last Donation
+                  </div>
+                  <div className="field-value">{formatDate(profileData?.lastDonationDate)}</div>
                 </div>
-                <div className="info-item">
-                  <label><FaPhone className="info-icon" /> Phone</label>
-                  <p>{profileData?.phone || 'Not provided'}</p>
+              </div>
+
+              <div className="info-row">
+                <div className="info-field">
+                  <div className="field-label">
+                    <FaPhone className="field-icon" /> Phone
+                  </div>
+                  <div className="field-value">{profileData?.phone || 'Not provided'}</div>
                 </div>
-                <div className="info-item">
-                  <label><FaTint className="info-icon" /> Total Donations</label>
-                  <p>{profileData?.totalDonations || 0}</p>
+                <div className="info-field">
+                  <div className="field-label">
+                    <FaAward className="field-icon" /> Total Donations
+                  </div>
+                  <div className="field-value">{profileData?.totalDonations || 0}</div>
                 </div>
-                <div className="info-item">
-                  <label><FaMapMarkerAlt className="info-icon" /> Location</label>
-                  <p>{profileData?.location?.address || 'Not provided'}</p>
+              </div>
+
+              <div className="info-row">
+                <div className="info-field">
+                  <div className="field-label">
+                    <FaMapMarkerAlt className="field-icon" /> Location
+                  </div>
+                  <div className="field-value">{profileData?.location?.address || 'Not provided'}</div>
                 </div>
-                <div className="info-item">
-                  <label><FaTint className="info-icon" /> Donor Eligibility</label>
-                  <p className={`eligibility-badge ${profileData?.donorEligibility}`}>
+                <div className="info-field">
+                  <div className="field-label">
+                    <FaTint className="field-icon" /> Donor Eligibility
+                  </div>
+                  <div className="field-value">
                     {profileData?.donorEligibility === 'eligible' ? 'Eligible to Donate' : 
                      profileData?.donorEligibility === 'not-eligible' ? 'Not Eligible' : 
                      'Not Recorded'}
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -151,22 +166,50 @@ function Profile() {
         </div>
 
         {/* Donation History & Achievements */}
-        <div className="profile-card">
-          <h3 className="card-title">Donation History & Achievements</h3>
+        <div className="info-card">
+          <h2 className="section-title">Donation History & Achievements</h2>
           
           {/* Achievements */}
-          <div className="achievements-section">
-            <h4>Achievements</h4>
-            <div className="achievements-empty">
-              <p>No achievements yet. Start donating to earn achievements!</p>
+          <div className="subsection">
+            <h3 className="subsection-title">Achievements</h3>
+            {/* TODO: Replace with dynamic achievement data when backend is ready */}
+            {/* Example structure for future implementation:
+            <div className="achievements-grid">
+              <div className="achievement-card">
+                <div className="achievement-header">
+                  <div className="achievement-title">First Donation</div>
+                  <div className="achievement-date">Jan 2023</div>
+                </div>
+                <div className="achievement-desc">Completed first blood donation</div>
+              </div>
+            </div>
+            */}
+            <div className="empty-state-card">
+              <p>No achievements as of now</p>
             </div>
           </div>
 
           {/* Recent Donations */}
-          <div className="donations-section">
-            <h4>Recent Donations</h4>
-            <div className="donations-empty">
-              <p>No donation history yet. Your donations will appear here.</p>
+          <div className="subsection">
+            <h3 className="subsection-title">Recent Donations</h3>
+            {/* TODO: Replace with dynamic donation history data when backend is ready */}
+            {/* Example structure for future implementation:
+            <div className="donations-list">
+              <div className="donation-item">
+                <div className="donation-bar"></div>
+                <div className="donation-details">
+                  <div className="donation-place">Red Cross Center</div>
+                  <div className="donation-info">
+                    <span>Blood Type: O+</span>
+                    <span>Amount: 450ml</span>
+                  </div>
+                </div>
+                <div className="donation-date">Sep 15, 2025</div>
+              </div>
+            </div>
+            */}
+            <div className="empty-state-card">
+              <p>No donation history</p>
             </div>
           </div>
         </div>

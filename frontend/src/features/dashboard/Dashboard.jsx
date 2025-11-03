@@ -3,7 +3,7 @@ import { useAuth } from '../../shared/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import ProfileCompleteModal from '../../shared/components/ProfileCompleteModal';
 import profileService from '../../shared/services/profileService';
-import Avatar from '../../shared/components/Avatar';
+import Navbar from '../../shared/components/Navbar';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -53,21 +53,9 @@ function Dashboard() {
 
   return (
     <div className="dashboard-container">
+      <Navbar />
       {showModal && <ProfileCompleteModal onContinue={handleContinue} />}
       
-      <div className="dashboard-header">
-        <h1>Blood Donation Map Dashboard</h1>
-        <div className="header-right">
-          <Avatar 
-            src={profileData?.profilePicture?.url} 
-            name={profileData?.fullName}
-            size="small" 
-          />
-          <button onClick={handleLogout} className="btn-logout">
-            Logout
-          </button>
-        </div>
-      </div>
       <div className="dashboard-content">
         <div className="welcome-card">
           <h2>Welcome, {user?.fullName}!</h2>
