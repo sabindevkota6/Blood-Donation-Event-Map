@@ -24,7 +24,15 @@ const getProfile = async (req, res) => {
 // @access  Private
 const updateProfile = async (req, res) => {
   try {
-    const { fullName, email, bloodType, phone, location } = req.body;
+    const {
+      fullName,
+      email,
+      bloodType,
+      phone,
+      location,
+      organization,
+      memberSince,
+    } = req.body;
 
     const user = await User.findById(req.user._id);
 
@@ -39,11 +47,20 @@ const updateProfile = async (req, res) => {
         .json({ message: "Only donors can have blood type" });
     }
 
+    // Only allow organizers to have organization fields
+    if (user.role !== "organizer" && (organization || memberSince)) {
+      return res
+        .status(400)
+        .json({ message: "Only organizers can have organization details" });
+    }
+
     // Update allowed fields
     if (fullName) user.fullName = fullName;
     if (email) user.email = email;
     if (bloodType) user.bloodType = bloodType;
     if (phone) user.phone = phone;
+    if (organization) user.organization = organization;
+    if (memberSince) user.memberSince = memberSince;
     if (location) {
       user.location = {
         address: location.address || user.location?.address,
@@ -63,9 +80,16 @@ const updateProfile = async (req, res) => {
         user.location?.coordinates?.lat &&
         user.location?.coordinates?.lng
       );
-    } else {
-      // For organizers, just check basic info
-      user.isProfileComplete = !!(user.phone && user.location?.address);
+    } else if (user.role === "organizer") {
+      // For organizers, check organization-specific fields
+      user.isProfileComplete = !!(
+        user.organization &&
+        user.memberSince &&
+        user.phone &&
+        user.location?.address &&
+        user.location?.coordinates?.lat &&
+        user.location?.coordinates?.lng
+      );
     }
 
     await user.save();

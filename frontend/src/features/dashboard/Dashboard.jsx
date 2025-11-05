@@ -22,8 +22,8 @@ function Dashboard() {
       const data = await profileService.getProfile(user.token);
       setProfileData(data);
       
-      // Only show modal for donors with incomplete profiles
-      if (user.role === 'donor' && !data.isProfileComplete) {
+      // Show modal for both donors and organizers with incomplete profiles
+      if (!data.isProfileComplete) {
         setShowModal(true);
       }
     } catch (error) {
@@ -61,13 +61,9 @@ function Dashboard() {
           <h2>Welcome, {user?.fullName}!</h2>
           <p>Role: <strong>{user?.role}</strong></p>
           <p>Email: {user?.email}</p>
-          {profileData?.isProfileComplete ? (
+          {profileData?.isProfileComplete && (
             <button className="btn-view-profile" onClick={() => navigate('/profile')}>
               View Profile
-            </button>
-          ) : (
-            <button className="btn-complete-profile" onClick={handleContinue}>
-              Complete Profile
             </button>
           )}
         </div>

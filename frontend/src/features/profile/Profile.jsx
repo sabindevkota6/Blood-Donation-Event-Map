@@ -93,7 +93,9 @@ function Profile() {
                 name={profileData?.fullName}
                 size="large" 
               />
-              <button className="donor-btn">Donor</button>
+              <button className="donor-btn">
+                {user.role === 'donor' ? 'Donor' : 'Organizer'}
+              </button>
             </div>
 
             {/* Right Column - Info Grid */}
@@ -105,12 +107,22 @@ function Profile() {
                   </div>
                   <div className="field-value">{profileData?.fullName || 'Not provided'}</div>
                 </div>
-                <div className="info-field">
-                  <div className="field-label">
-                    <FaTint className="field-icon" /> Blood Type
+                {user.role === 'donor' && (
+                  <div className="info-field">
+                    <div className="field-label">
+                      <FaTint className="field-icon" /> Blood Type
+                    </div>
+                    <div className="field-value">{profileData?.bloodType || 'Not provided'}</div>
                   </div>
-                  <div className="field-value">{profileData?.bloodType || 'Not provided'}</div>
-                </div>
+                )}
+                {user.role === 'organizer' && (
+                  <div className="info-field">
+                    <div className="field-label">
+                      <FaAward className="field-icon" /> Organization
+                    </div>
+                    <div className="field-value">{profileData?.organization || 'Not provided'}</div>
+                  </div>
+                )}
               </div>
 
               <div className="info-row">
@@ -120,12 +132,29 @@ function Profile() {
                   </div>
                   <div className="field-value">{profileData?.email || 'Not provided'}</div>
                 </div>
-                <div className="info-field">
-                  <div className="field-label">
-                    <FaCalendarAlt className="field-icon" /> Last Donation
+                {user.role === 'donor' && (
+                  <div className="info-field">
+                    <div className="field-label">
+                      <FaCalendarAlt className="field-icon" /> Last Donation
+                    </div>
+                    <div className="field-value">{formatDate(profileData?.lastDonationDate)}</div>
                   </div>
-                  <div className="field-value">{formatDate(profileData?.lastDonationDate)}</div>
-                </div>
+                )}
+                {user.role === 'organizer' && (
+                  <div className="info-field">
+                    <div className="field-label">
+                      <FaCalendarAlt className="field-icon" /> Member Since
+                    </div>
+                    <div className="field-value">
+                      {profileData?.memberSince 
+                        ? new Date(profileData.memberSince + '-01').toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long' 
+                          })
+                        : 'Not provided'}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="info-row">
@@ -135,12 +164,14 @@ function Profile() {
                   </div>
                   <div className="field-value">{profileData?.phone || 'Not provided'}</div>
                 </div>
-                <div className="info-field">
-                  <div className="field-label">
-                    <FaAward className="field-icon" /> Total Donations
+                {user.role === 'donor' && (
+                  <div className="info-field">
+                    <div className="field-label">
+                      <FaAward className="field-icon" /> Total Donations
+                    </div>
+                    <div className="field-value">{profileData?.totalDonations || 0}</div>
                   </div>
-                  <div className="field-value">{profileData?.totalDonations || 0}</div>
-                </div>
+                )}
               </div>
 
               <div className="info-row">
@@ -150,16 +181,18 @@ function Profile() {
                   </div>
                   <div className="field-value">{profileData?.location?.address || 'Not provided'}</div>
                 </div>
-                <div className="info-field">
-                  <div className="field-label">
-                    <FaTint className="field-icon" /> Donor Eligibility
+                {user.role === 'donor' && (
+                  <div className="info-field">
+                    <div className="field-label">
+                      <FaTint className="field-icon" /> Donor Eligibility
+                    </div>
+                    <div className="field-value">
+                      {profileData?.donorEligibility === 'eligible' ? 'Eligible to Donate' : 
+                       profileData?.donorEligibility === 'not-eligible' ? 'Not Eligible' : 
+                       'Not Recorded'}
+                    </div>
                   </div>
-                  <div className="field-value">
-                    {profileData?.donorEligibility === 'eligible' ? 'Eligible to Donate' : 
-                     profileData?.donorEligibility === 'not-eligible' ? 'Not Eligible' : 
-                     'Not Recorded'}
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

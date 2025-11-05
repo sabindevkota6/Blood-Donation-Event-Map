@@ -8,6 +8,14 @@ function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const handleHomeClick = () => {
+    navigate('/dashboard');
+  };
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -16,14 +24,16 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-content">
-        <div className="navbar-brand">Blood Donation Map</div>
+        <div className="navbar-brand" onClick={handleHomeClick}>Blood Donation Map</div>
         <div className="navbar-user">
-          <Avatar 
-            src={user?.profilePicture?.url} 
-            name={user?.fullName || user?.name}
-            size="small" 
-          />
-          <span className="navbar-username">{user?.fullName || user?.name}</span>
+          <div className="navbar-profile" onClick={handleProfileClick}>
+            <Avatar 
+              src={user?.profilePicture?.url} 
+              name={user?.fullName || user?.name}
+              size="small" 
+            />
+            <span className="navbar-username">{user?.fullName || user?.name}</span>
+          </div>
           <button className="navbar-logout" onClick={handleLogout}>
             Logout
           </button>

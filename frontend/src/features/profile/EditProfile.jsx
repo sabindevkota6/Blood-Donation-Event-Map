@@ -21,6 +21,9 @@ function EditProfile() {
     phone: '',
     address: '',
     position: null,
+    // Organizer-specific fields
+    organization: '',
+    memberSince: '',
   });
 
   const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -43,6 +46,8 @@ function EditProfile() {
           lat: data.location.coordinates.lat,
           lng: data.location.coordinates.lng,
         } : null,
+        organization: data.organization || '',
+        memberSince: data.memberSince ? data.memberSince.slice(0, 7) : '',
       });
     } catch (err) {
       setError('Failed to load profile');
@@ -90,13 +95,23 @@ function EditProfile() {
       return;
     }
 
+    if (user.role === 'organizer') {
+      if (!formData.organization.trim()) {
+        setError('Organization name is required for organizers');
+        return;
+      }
+      if (!formData.memberSince) {
+        setError('Member since date is required for organizers');
+        return;
+      }
+    }
+
     try {
       setSaving(true);
 
       const profileData = {
         fullName: formData.fullName,
         email: formData.email,
-        bloodType: formData.bloodType,
         phone: formData.phone,
         location: formData.position ? {
           address: formData.address,
@@ -106,6 +121,14 @@ function EditProfile() {
           },
         } : undefined,
       };
+
+      // Add role-specific fields
+      if (user.role === 'donor') {
+        profileData.bloodType = formData.bloodType;
+      } else if (user.role === 'organizer') {
+        profileData.organization = formData.organization;
+        profileData.memberSince = formData.memberSince;
+      }
 
       await profileService.updateProfile(profileData, user.token);
       setSuccess('Profile updated successfully!');
@@ -190,6 +213,36 @@ function EditProfile() {
                     {type}
                   </button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {user.role === 'organizer' && (
+            <div className="form-section">
+              <h3>Organization Details*</h3>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Organization Name*</label>
+                  <input
+                    type="text"
+                    name="organization"
+                    value={formData.organization}
+                    onChange={handleChange}
+                    placeholder="Enter organization name"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Member Since*</label>
+                  <input
+                    type="month"
+                    name="memberSince"
+                    value={formData.memberSince}
+                    onChange={handleChange}
+                    max={new Date().toISOString().slice(0, 7)}
+                    required
+                  />
+                </div>
               </div>
             </div>
           )}

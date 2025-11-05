@@ -24,6 +24,17 @@ const profileService = {
     return response.data;
   },
 
+  // Complete profile (same as update, but semantically different)
+  completeProfile: async (profileData, token) => {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const response = await axios.put(`${API_URL}/profile`, profileData, config);
+    return response.data;
+  },
+
   // Upload profile picture
   uploadProfilePicture: async (formData, token) => {
     const config = {

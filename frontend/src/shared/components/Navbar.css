@@ -23,6 +23,7 @@
   font-size: 20px;
   font-weight: 600;
   margin-left: 20px;
+  cursor: pointer;
 }
 
 .navbar-user {
@@ -30,6 +31,20 @@
   align-items: center;
   gap: 12px;
   margin-right: 80px;
+}
+
+.navbar-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.navbar-profile:hover {
+  background-color: #fef5f5;
 }
 
 .navbar-username {

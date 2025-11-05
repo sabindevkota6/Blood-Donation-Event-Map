@@ -10,11 +10,13 @@ function ProfileSetup() {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    fullName: '',
     bloodType: '',
     phone: '',
     address: '',
     position: null,
+    // Organizer-specific fields
+    organization: '',
+    memberSince: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -46,13 +48,19 @@ function ProfileSetup() {
 
   const handleNext = () => {
     if (currentStep === 1) {
-      if (!formData.fullName.trim()) {
-        setError('Please enter your full name');
-        return;
-      }
       if (user.role === 'donor' && !formData.bloodType) {
         setError('Please select your blood type');
         return;
+      }
+      if (user.role === 'organizer') {
+        if (!formData.organization.trim()) {
+          setError('Please enter your organization name');
+          return;
+        }
+        if (!formData.memberSince) {
+          setError('Please select when you joined the organization');
+          return;
+        }
       }
     }
     
@@ -83,8 +91,6 @@ function ProfileSetup() {
       setError('');
 
       const profileData = {
-        fullName: formData.fullName,
-        bloodType: formData.bloodType,
         phone: formData.phone,
         location: {
           address: formData.address,
@@ -94,6 +100,14 @@ function ProfileSetup() {
           },
         },
       };
+
+      // Add role-specific fields
+      if (user.role === 'donor') {
+        profileData.bloodType = formData.bloodType;
+      } else if (user.role === 'organizer') {
+        profileData.organization = formData.organization;
+        profileData.memberSince = formData.memberSince;
+      }
 
       await profileService.completeProfile(profileData, user.token);
       navigate('/dashboard');
@@ -110,17 +124,6 @@ function ProfileSetup() {
         return (
           <div className="step-content">
             <h2>Basic Information</h2>
-            <div className="form-group">
-              <label>Full Name *</label>
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                placeholder="Enter your full name"
-                required
-              />
-            </div>
 
             {user.role === 'donor' && (
               <>
@@ -142,6 +145,35 @@ function ProfileSetup() {
               </>
             )}
 
+            {user.role === 'organizer' && (
+              <>
+                <div className="form-group">
+                  <label>Organization Name *</label>
+                  <input
+                    type="text"
+                    name="organization"
+                    value={formData.organization}
+                    onChange={handleChange}
+                    placeholder="Enter your organization name"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Member Since *</label>
+                  <input
+                    type="month"
+                    name="memberSince"
+                    value={formData.memberSince}
+                    onChange={handleChange}
+                    max={new Date().toISOString().slice(0, 7)}
+                    required
+                  />
+                  <small className="field-hint">Select the date when you became a member of the organization</small>
+                </div>
+              </>
+            )}
+
             <div className="form-group">
               <label>Phone Number</label>
               <input
@@ -149,7 +181,7 @@ function ProfileSetup() {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="+977 98xxxxxxxx"
+                placeholder="Enter your phone number"
               />
             </div>
           </div>
@@ -191,15 +223,28 @@ function ProfileSetup() {
           <div className="step-content summary">
             <h2>Confirm Your Information</h2>
             <div className="summary-card">
-              <div className="summary-item">
-                <span className="label">Full Name:</span>
-                <span className="value">{formData.fullName}</span>
-              </div>
               {user.role === 'donor' && (
                 <div className="summary-item">
                   <span className="label">Blood Type:</span>
                   <span className="value blood-badge">{formData.bloodType}</span>
                 </div>
+              )}
+              {user.role === 'organizer' && (
+                <>
+                  <div className="summary-item">
+                    <span className="label">Organization:</span>
+                    <span className="value">{formData.organization}</span>
+                  </div>
+                  <div className="summary-item">
+                    <span className="label">Member Since:</span>
+                    <span className="value">
+                      {new Date(formData.memberSince + '-01').toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long' 
+                      })}
+                    </span>
+                  </div>
+                </>
               )}
               {formData.phone && (
                 <div className="summary-item">

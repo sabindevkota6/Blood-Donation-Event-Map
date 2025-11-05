@@ -363,7 +363,6 @@ function LocationMap({
     }
 
     setIsSearching(true);
-    setSearchError('');
 
     try {
       const currentBounds = mapBounds || normalizeBounds(mapRef.current?.getBounds());
@@ -442,6 +441,7 @@ function LocationMap({
 
         setSearchResults(enrichedResults);
         setShowResults(enrichedResults.length > 0);
+        setSearchError(''); // Clear any previous error when results are found
 
         if (enrichedResults.length === 0) {
           setSearchError('No nearby matches. Try zooming out or refining your search.');
@@ -477,9 +477,11 @@ function LocationMap({
       return;
     }
 
+    setSearchError(''); // Clear error immediately when user starts typing a valid query
+
     searchTimeoutRef.current = setTimeout(() => {
       performSearch(query);
-    }, 300);
+    }, 500);
   }, [performSearch]);
 
   const handleSelectResult = useCallback((result) => {

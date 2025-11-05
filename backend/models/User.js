@@ -76,6 +76,13 @@ const userSchema = new mongoose.Schema(
       enum: ["eligible", "not-eligible", "not-recorded"],
       default: "not-recorded",
     },
+    // Organizer-specific fields (for organizers only)
+    organization: {
+      type: String,
+    },
+    memberSince: {
+      type: String,
+    },
     isActive: {
       type: Boolean,
       default: true,
