@@ -43,7 +43,7 @@
 }
 
 /* Form Styling */
-form {
+.edit-profile-container form {
   background-color: white;
   border-radius: 12px;
   padding: 32px;
