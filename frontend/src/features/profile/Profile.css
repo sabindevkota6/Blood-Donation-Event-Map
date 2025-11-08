@@ -79,123 +79,108 @@
 
 .section-title {
   color: #dc3545;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   margin: 0 0 24px 0;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #f0f0f0;
 }
 
-/* Info Layout */
-.info-layout {
-  display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 40px;
-  align-items: start;
+/* Personal Info Layout */
+.personal-info-layout {
+  display: flex;
+  gap: 32px;
 }
 
-/* Left Column */
-.info-left-column {
+.avatar-section {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  flex-shrink: 0;
 }
 
-.donor-btn {
-  width: 100%;
-  padding: 10px 24px;
+.role-badge {
+  padding: 8px 24px;
   background-color: #dc3545;
   color: white;
   border: none;
   border-radius: 6px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   cursor: default;
+  white-space: nowrap;
 }
 
-/* Right Column */
-.info-right-column {
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 40px;
+  flex: 1;
+}
+
+.info-column {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.info-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.info-field {
+.info-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.field-label {
+.info-label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  font-size: 12px;
   color: #666;
+}
+
+.info-icon {
+  color: #dc3545;
   font-size: 13px;
-  font-weight: 500;
 }
 
-.field-icon {
-  color: #dc3545;
+.info-value {
   font-size: 14px;
-}
-
-.field-value {
   color: #333;
-  font-size: 15px;
   font-weight: 400;
-}
-
-/* Subsections */
-.subsection {
-  margin-top: 32px;
-}
-
-.subsection:first-of-type {
-  margin-top: 0;
-}
-
-.subsection-title {
-  color: #dc3545;
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 16px 0;
 }
 
 /* Achievements Grid */
 .achievements-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
 .achievement-card {
   background-color: #fef5f5;
-  border: 1px solid #f5e5e5;
+  border: 1px solid #fde5e5;
   border-radius: 8px;
   padding: 16px;
-}
-
-.achievement-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 8px;
-  gap: 12px;
+  gap: 16px;
+}
+
+.achievement-content {
+  flex: 1;
 }
 
 .achievement-title {
   color: #333;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  flex: 1;
+  margin-bottom: 6px;
+}
+
+.achievement-description {
+  color: #666;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .achievement-date {
@@ -203,78 +188,63 @@
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.achievement-desc {
-  color: #666;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-/* Empty State Card */
-.empty-state-card {
-  background-color: #fef5f5;
-  border: 1px solid #f5e5e5;
-  border-radius: 8px;
-  padding: 40px 20px;
-  text-align: center;
-}
-
-.empty-state-card p {
-  color: #999;
-  font-size: 14px;
-  margin: 0;
-}
-
-/* Donations List */
-.donations-list {
+/* Event List */
+.event-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
-.donation-item {
+.event-item {
+  background-color: #fef5f5;
+  border: 1px solid #fde5e5;
+  border-radius: 8px;
+  padding: 16px;
   display: flex;
   align-items: center;
   gap: 16px;
-  background-color: #fef5f5;
-  border: 1px solid #f5e5e5;
-  border-radius: 8px;
-  padding: 16px;
 }
 
-.donation-bar {
+.event-bar {
   width: 4px;
-  height: 50px;
+  height: 40px;
   background-color: #dc3545;
   border-radius: 2px;
   flex-shrink: 0;
 }
 
-.donation-details {
+.event-content {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
-.donation-place {
+.event-name {
   color: #333;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
+  margin-bottom: 6px;
 }
 
-.donation-info {
+.event-details {
   display: flex;
-  gap: 16px;
+  align-items: center;
+  gap: 6px;
   color: #666;
-  font-size: 13px;
+  font-size: 12px;
 }
 
-.donation-date {
+.detail-icon {
   color: #dc3545;
   font-size: 13px;
+}
+
+.event-date {
+  color: #dc3545;
+  font-size: 12px;
   font-weight: 500;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
@@ -299,13 +269,12 @@
     padding: 20px;
   }
 
-  .info-layout {
-    grid-template-columns: 180px 1fr;
-    gap: 32px;
+  .info-grid {
+    gap: 20px 32px;
   }
 
   .achievements-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: 1fr;
   }
 }
 
@@ -327,21 +296,17 @@
     padding: 24px 20px;
   }
 
-  .info-layout {
-    grid-template-columns: 1fr;
-    gap: 24px;
+  .personal-info-layout {
+    flex-direction: column;
+    align-items: center;
   }
 
-  .info-left-column {
-    flex-direction: row;
-    justify-content: center;
+  .avatar-section {
+    width: 100%;
+    max-width: 200px;
   }
 
-  .donor-btn {
-    max-width: 150px;
-  }
-
-  .info-row {
+  .info-grid {
     grid-template-columns: 1fr;
     gap: 20px;
   }
@@ -350,19 +315,14 @@
     grid-template-columns: 1fr;
   }
 
-  .donation-item {
+  .event-item {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .donation-bar {
+  .event-bar {
     width: 100%;
     height: 4px;
-  }
-
-  .donation-info {
-    flex-direction: column;
-    gap: 4px;
   }
 }
 
@@ -391,14 +351,6 @@
   }
 
   .section-title {
-    font-size: 18px;
-  }
-
-  .info-left-column {
-    flex-direction: column;
-  }
-
-  .donor-btn {
-    max-width: 100%;
+    font-size: 16px;
   }
 }

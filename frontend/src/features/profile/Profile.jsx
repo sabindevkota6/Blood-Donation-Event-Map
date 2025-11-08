@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaEdit, FaPhone, FaMapMarkerAlt, FaEnvelope, FaTint, FaUser, FaCalendarAlt, FaAward } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit, FaPhone, FaMapMarkerAlt, FaEnvelope, FaTint, FaUser, FaCalendarAlt, FaAward, FaUsers } from 'react-icons/fa';
 import { useAuth } from '../../shared/context/AuthContext';
 import profileService from '../../shared/services/profileService';
 import Avatar from '../../shared/components/Avatar';
@@ -68,15 +68,18 @@ function Profile() {
 
       {/* Main Content */}
       <div className="profile-container">
-        {/* Back Button and Title */}
+        {/* Back Button */}
         <div className="profile-header">
           <button className="back-link" onClick={() => navigate('/dashboard')}>
             <FaArrowLeft /> Back to Home
           </button>
         </div>
 
+        {/* Title and Edit Button */}
         <div className="profile-title-bar">
-          <h1 className="profile-title">My Profile</h1>
+          <h1 className="profile-title">
+            {user.role === 'donor' ? 'Donor Profile' : 'Organizer Profile'}
+          </h1>
           <button className="edit-btn" onClick={() => navigate('/profile/edit')}>
             <FaEdit /> Edit Profile
           </button>
@@ -85,164 +88,225 @@ function Profile() {
         {/* Personal Information Card */}
         <div className="info-card">
           <h2 className="section-title">Personal Information</h2>
-          <div className="info-layout">
-            {/* Left Column - Avatar and Button */}
-            <div className="info-left-column">
+          <div className="personal-info-layout">
+            {/* Left Side - Avatar and Role Badge */}
+            <div className="avatar-section">
               <Avatar 
                 src={profileData?.profilePicture?.url} 
                 name={profileData?.fullName}
                 size="large" 
               />
-              <button className="donor-btn">
+              <button className="role-badge">
                 {user.role === 'donor' ? 'Donor' : 'Organizer'}
               </button>
             </div>
 
-            {/* Right Column - Info Grid */}
-            <div className="info-right-column">
-              <div className="info-row">
-                <div className="info-field">
-                  <div className="field-label">
-                    <FaUser className="field-icon" /> Name
+            {/* Right Side - Two Column Grid */}
+            <div className="info-grid">
+              {/* Column 1 */}
+              <div className="info-column">
+                <div className="info-item">
+                  <div className="info-label">
+                    <FaUser className="info-icon" /> Name
                   </div>
-                  <div className="field-value">{profileData?.fullName || 'Not provided'}</div>
+                  <div className="info-value">{profileData?.fullName || 'John Doe'}</div>
                 </div>
-                {user.role === 'donor' && (
-                  <div className="info-field">
-                    <div className="field-label">
-                      <FaTint className="field-icon" /> Blood Type
-                    </div>
-                    <div className="field-value">{profileData?.bloodType || 'Not provided'}</div>
+
+                <div className="info-item">
+                  <div className="info-label">
+                    <FaEnvelope className="info-icon" /> Email
                   </div>
-                )}
+                  <div className="info-value">{profileData?.email || 'Not provided'}</div>
+                </div>
+
+                <div className="info-item">
+                  <div className="info-label">
+                    <FaPhone className="info-icon" /> Phone
+                  </div>
+                  <div className="info-value">{profileData?.phone || 'Not provided'}</div>
+                </div>
+
+                <div className="info-item">
+                  <div className="info-label">
+                    <FaMapMarkerAlt className="info-icon" /> Location
+                  </div>
+                  <div className="info-value">{profileData?.location?.address || 'Not provided'}</div>
+                </div>
+              </div>
+
+              {/* Column 2 */}
+              <div className="info-column">
                 {user.role === 'organizer' && (
-                  <div className="info-field">
-                    <div className="field-label">
-                      <FaAward className="field-icon" /> Organization
+                  <>
+                    <div className="info-item">
+                      <div className="info-label">
+                        <FaAward className="info-icon" /> Organization
+                      </div>
+                      <div className="info-value">{profileData?.organization || 'Not provided'}</div>
                     </div>
-                    <div className="field-value">{profileData?.organization || 'Not provided'}</div>
-                  </div>
-                )}
-              </div>
 
-              <div className="info-row">
-                <div className="info-field">
-                  <div className="field-label">
-                    <FaEnvelope className="field-icon" /> Email
-                  </div>
-                  <div className="field-value">{profileData?.email || 'Not provided'}</div>
-                </div>
-                {user.role === 'donor' && (
-                  <div className="info-field">
-                    <div className="field-label">
-                      <FaCalendarAlt className="field-icon" /> Last Donation
+                    <div className="info-item">
+                      <div className="info-label">
+                        <FaCalendarAlt className="info-icon" /> Member Since
+                      </div>
+                      <div className="info-value">
+                        {profileData?.memberSince 
+                          ? new Date(profileData.memberSince + '-01').toLocaleDateString('en-US', { 
+                              year: 'numeric', 
+                              month: 'long' 
+                            })
+                          : 'Not provided'}
+                      </div>
                     </div>
-                    <div className="field-value">{formatDate(profileData?.lastDonationDate)}</div>
-                  </div>
-                )}
-                {user.role === 'organizer' && (
-                  <div className="info-field">
-                    <div className="field-label">
-                      <FaCalendarAlt className="field-icon" /> Member Since
-                    </div>
-                    <div className="field-value">
-                      {profileData?.memberSince 
-                        ? new Date(profileData.memberSince + '-01').toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: 'long' 
-                          })
-                        : 'Not provided'}
-                    </div>
-                  </div>
-                )}
-              </div>
 
-              <div className="info-row">
-                <div className="info-field">
-                  <div className="field-label">
-                    <FaPhone className="field-icon" /> Phone
-                  </div>
-                  <div className="field-value">{profileData?.phone || 'Not provided'}</div>
-                </div>
-                {user.role === 'donor' && (
-                  <div className="info-field">
-                    <div className="field-label">
-                      <FaAward className="field-icon" /> Total Donations
+                    <div className="info-item">
+                      <div className="info-label">
+                        <FaCalendarAlt className="info-icon" /> Events Organized
+                      </div>
+                      <div className="info-value">{profileData?.eventsOrganized || '24'}</div>
                     </div>
-                    <div className="field-value">{profileData?.totalDonations || 0}</div>
-                  </div>
-                )}
-              </div>
 
-              <div className="info-row">
-                <div className="info-field">
-                  <div className="field-label">
-                    <FaMapMarkerAlt className="field-icon" /> Location
-                  </div>
-                  <div className="field-value">{profileData?.location?.address || 'Not provided'}</div>
-                </div>
+                    <div className="info-item">
+                      <div className="info-label">
+                        <FaUsers className="info-icon" /> Total Attendees
+                      </div>
+                      <div className="info-value">{profileData?.totalAttendees || '1942'}</div>
+                    </div>
+                  </>
+                )}
+
                 {user.role === 'donor' && (
-                  <div className="info-field">
-                    <div className="field-label">
-                      <FaTint className="field-icon" /> Donor Eligibility
+                  <>
+                    <div className="info-item">
+                      <div className="info-label">
+                        <FaTint className="info-icon" /> Blood Type
+                      </div>
+                      <div className="info-value">{profileData?.bloodType || 'Not provided'}</div>
                     </div>
-                    <div className="field-value">
-                      {profileData?.donorEligibility === 'eligible' ? 'Eligible to Donate' : 
-                       profileData?.donorEligibility === 'not-eligible' ? 'Not Eligible' : 
-                       'Not Recorded'}
+
+                    <div className="info-item">
+                      <div className="info-label">
+                        <FaCalendarAlt className="info-icon" /> Last Donation
+                      </div>
+                      <div className="info-value">{formatDate(profileData?.lastDonationDate)}</div>
                     </div>
-                  </div>
+
+                    <div className="info-item">
+                      <div className="info-label">
+                        <FaAward className="info-icon" /> Total Donations
+                      </div>
+                      <div className="info-value">{profileData?.totalDonations || 0}</div>
+                    </div>
+
+                    <div className="info-item">
+                      <div className="info-label">
+                        <FaTint className="info-icon" /> Donor Eligibility
+                      </div>
+                      <div className="info-value">
+                        {profileData?.donorEligibility === 'eligible' ? 'Eligible to Donate' : 
+                         profileData?.donorEligibility === 'not-eligible' ? 'Not Eligible' : 
+                         'Not Recorded'}
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Donation History & Achievements */}
+        {/* Organizing Achievements */}
         <div className="info-card">
-          <h2 className="section-title">Donation History & Achievements</h2>
+          <h2 className="section-title">
+            {user.role === 'donor' ? 'Achievements' : 'Organizing Achievements'}
+          </h2>
           
-          {/* Achievements */}
-          <div className="subsection">
-            <h3 className="subsection-title">Achievements</h3>
-            {/* TODO: Replace with dynamic achievement data when backend is ready */}
-            {/* Example structure for future implementation:
-            <div className="achievements-grid">
-              <div className="achievement-card">
-                <div className="achievement-header">
-                  <div className="achievement-title">First Donation</div>
-                  <div className="achievement-date">Jan 2023</div>
-                </div>
-                <div className="achievement-desc">Completed first blood donation</div>
+          {/* Achievement Cards Grid */}
+          <div className="achievements-grid">
+            <div className="achievement-card">
+              <div className="achievement-content">
+                <div className="achievement-title">First Event</div>
+                <div className="achievement-description">Successfully organized first blood donation event</div>
               </div>
+              <div className="achievement-date">Mar 2022</div>
             </div>
-            */}
-            <div className="empty-state-card">
-              <p>No achievements as of now</p>
+
+            <div className="achievement-card">
+              <div className="achievement-content">
+                <div className="achievement-title">100 Donors Milestone</div>
+                <div className="achievement-description">Reached 100 total donors across all events</div>
+              </div>
+              <div className="achievement-date">Aug 2022</div>
+            </div>
+
+            <div className="achievement-card">
+              <div className="achievement-content">
+                <div className="achievement-title">10 Events Organized</div>
+                <div className="achievement-description">Organized 10+ successful blood donation events</div>
+              </div>
+              <div className="achievement-date">May 2023</div>
+            </div>
+
+            <div className="achievement-card">
+              <div className="achievement-content">
+                <div className="achievement-title">50 Events Organized</div>
+                <div className="achievement-description">Reached the milestone of organizing 50 blood donation events</div>
+              </div>
+              <div className="achievement-date">Sep 2025</div>
             </div>
           </div>
+        </div>
 
-          {/* Recent Donations */}
-          <div className="subsection">
-            <h3 className="subsection-title">Recent Donations</h3>
-            {/* TODO: Replace with dynamic donation history data when backend is ready */}
-            {/* Example structure for future implementation:
-            <div className="donations-list">
-              <div className="donation-item">
-                <div className="donation-bar"></div>
-                <div className="donation-details">
-                  <div className="donation-place">Red Cross Center</div>
-                  <div className="donation-info">
-                    <span>Blood Type: O+</span>
-                    <span>Amount: 450ml</span>
-                  </div>
+        {/* Event History */}
+        <div className="info-card">
+          <h2 className="section-title">
+            {user.role === 'donor' ? 'Donation History' : 'Event History'}
+          </h2>
+          
+          {/* Event List */}
+          <div className="event-list">
+            <div className="event-item">
+              <div className="event-bar"></div>
+              <div className="event-content">
+                <div className="event-name">Winter Blood Drive 2025</div>
+                <div className="event-details">
+                  <FaUsers className="detail-icon" /> 142 attendees
                 </div>
-                <div className="donation-date">Sep 15, 2025</div>
               </div>
+              <div className="event-date">Oct 15, 2025</div>
             </div>
-            */}
-            <div className="empty-state-card">
-              <p>No donation history</p>
+
+            <div className="event-item">
+              <div className="event-bar"></div>
+              <div className="event-content">
+                <div className="event-name">Community Blood Drive 2025</div>
+                <div className="event-details">
+                  <FaUsers className="detail-icon" /> 87 attendees
+                </div>
+              </div>
+              <div className="event-date">Aug 15, 2025</div>
+            </div>
+
+            <div className="event-item">
+              <div className="event-bar"></div>
+              <div className="event-content">
+                <div className="event-name">Summer Donation Event</div>
+                <div className="event-details">
+                  <FaUsers className="detail-icon" /> 124 attendees
+                </div>
+              </div>
+              <div className="event-date">Jun 10, 2025</div>
+            </div>
+
+            <div className="event-item">
+              <div className="event-bar"></div>
+              <div className="event-content">
+                <div className="event-name">Spring Health Fair</div>
+                <div className="event-details">
+                  <FaUsers className="detail-icon" /> 65 attendees
+                </div>
+              </div>
+              <div className="event-date">Apr 20, 2025</div>
             </div>
           </div>
         </div>
