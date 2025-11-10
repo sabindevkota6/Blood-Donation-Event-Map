@@ -12,6 +12,8 @@ import Dashboard from "./features/dashboard/Dashboard";
 import ProfileSetup from "./features/profile/ProfileSetup";
 import Profile from "./features/profile/Profile";
 import EditProfile from "./features/profile/EditProfile";
+import Events from "./features/events/Events";
+import CreateEvent from "./features/events/CreateEvent";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -85,6 +87,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <EditProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/events"
+            element={
+              <ProtectedRoute>
+                <Events />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/events/create"
+            element={
+              <ProtectedRoute>
+                <CreateEvent />
               </ProtectedRoute>
             }
           />

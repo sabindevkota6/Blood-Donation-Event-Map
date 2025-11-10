@@ -62,8 +62,11 @@ function Dashboard() {
           <p>Role: <strong>{user?.role}</strong></p>
           <p>Email: {user?.email}</p>
           {profileData?.isProfileComplete && (
-            <button className="btn-view-profile" onClick={() => navigate('/profile')}>
-              View Profile
+            <button 
+              className="btn-view-profile" 
+              onClick={() => navigate(user?.role === 'organizer' ? '/events' : '/profile')}
+            >
+              {user?.role === 'organizer' ? 'View My Events' : 'View Profile'}
             </button>
           )}
         </div>
