@@ -112,16 +112,6 @@ function CreateEvent() {
     }
   };
 
-  useEffect(() => {
-    if (!startDateValue) {
-      return;
-    }
-
-    if (!endDateValue) {
-      setValue('endDate', startDateValue, { shouldValidate: true });
-    }
-  }, [startDateValue, endDateValue, setValue]);
-
   const handleRequirementChange = (index, value) => {
     const updatedRequirements = [...eligibilityRequirements];
     updatedRequirements[index] = value;
@@ -142,13 +132,118 @@ function CreateEvent() {
     setError('');
     setSuccess('');
 
-    // Check for duplicate event title
+    // Check for duplicate event title against active events only
     try {
-      const events = await eventService.getAllEvents();
-      const isDuplicate = events.some(
-        event => event.eventTitle.toLowerCase().trim() === data.eventTitle.toLowerCase().trim()
-      );
-      if (isDuplicate) {
+      const eventsResponse = await eventService.getAllEvents({ page: 1, limit: 1000 });
+      const fetchedEvents = Array.isArray(eventsResponse?.events)
+        ? eventsResponse.events
+        : Array.isArray(eventsResponse)
+          ? eventsResponse
+          : [];
+
+      const normalizeTitle = data.eventTitle.toLowerCase().trim();
+
+      const parseTimeStringToMinutes = (timeString) => {
+        if (!timeString) {
+          return null;
+        }
+
+        const match = timeString.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+        if (!match) {
+          return null;
+        }
+
+        let hours = parseInt(match[1], 10);
+        const minutes = parseInt(match[2], 10);
+        const period = match[3].toUpperCase();
+
+        if (period === 'PM' && hours !== 12) {
+          hours += 12;
+        }
+
+        if (period === 'AM' && hours === 12) {
+          hours = 0;
+        }
+
+        return hours * 60 + minutes;
+      };
+
+      const assessEventStatus = (event) => {
+        if (event.status === 'cancelled') {
+          return 'cancelled';
+        }
+
+        const now = new Date();
+        const startDateRaw = event.startDate || event.eventDate;
+        const endDateRaw = event.endDate || startDateRaw;
+
+        const startDate = startDateRaw ? new Date(startDateRaw) : null;
+        const endDate = endDateRaw ? new Date(endDateRaw) : null;
+
+        if (!startDate || Number.isNaN(startDate.getTime())) {
+          return event.status || 'upcoming';
+        }
+
+        const effectiveEndDate = endDate && !Number.isNaN(endDate.getTime())
+          ? endDate
+          : new Date(startDate);
+
+        const timeRange = typeof event.eventTime === 'string' && event.eventTime.includes('-')
+          ? event.eventTime.split('-').map((part) => part.trim())
+          : null;
+
+        const startDateTime = new Date(startDate);
+        const endDateTime = new Date(effectiveEndDate);
+
+        if (timeRange && timeRange.length === 2) {
+          const startMinutes = parseTimeStringToMinutes(timeRange[0]);
+          const endMinutes = parseTimeStringToMinutes(timeRange[1]);
+
+          if (startMinutes !== null) {
+            startDateTime.setHours(Math.floor(startMinutes / 60), startMinutes % 60, 0, 0);
+          } else {
+            startDateTime.setHours(0, 0, 0, 0);
+          }
+
+          if (endMinutes !== null) {
+            endDateTime.setHours(Math.floor(endMinutes / 60), endMinutes % 60, 0, 0);
+
+            if (startMinutes !== null && endMinutes <= startMinutes) {
+              endDateTime.setDate(endDateTime.getDate() + 1);
+            }
+          } else {
+            endDateTime.setHours(23, 59, 59, 999);
+          }
+        } else {
+          startDateTime.setHours(0, 0, 0, 0);
+          endDateTime.setHours(23, 59, 59, 999);
+        }
+
+        if (now < startDateTime) {
+          return 'upcoming';
+        }
+
+        if (now <= endDateTime) {
+          return 'ongoing';
+        }
+
+        return 'completed';
+      };
+
+      const hasActiveDuplicate = fetchedEvents.some((event) => {
+        if (!event?.eventTitle) {
+          return false;
+        }
+
+        const evaluatedStatus = assessEventStatus(event);
+        if (evaluatedStatus !== 'upcoming' && evaluatedStatus !== 'ongoing') {
+          return false;
+        }
+
+        return event.eventTitle.toLowerCase().trim() === normalizeTitle;
+      });
+
+      if (hasActiveDuplicate) {
         setError('An event with this title already exists. Please choose a different title.');
         return;
       }

@@ -114,12 +114,22 @@ exports.createEvent = async (req, res) => {
       });
     }
 
-    // Check for duplicate event title
-    const existingEvent = await Event.findOne({
-      eventTitle: { $regex: new RegExp(`^${eventTitle.trim()}$`, "i") },
+    // Check for duplicate event title among active events only
+    const normalizeRegexInput = (value) =>
+      value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const matchingEvents = await Event.find({
+      eventTitle: {
+        $regex: new RegExp(`^${normalizeRegexInput(eventTitle.trim())}$`, "i"),
+      },
     });
 
-    if (existingEvent) {
+    const hasActiveDuplicate = matchingEvents.some((eventDoc) => {
+      const evaluatedStatus = eventDoc.updateStatus();
+      return evaluatedStatus === "upcoming" || evaluatedStatus === "ongoing";
+    });
+
+    if (hasActiveDuplicate) {
       return res.status(400).json({
         message:
           "An event with this title already exists. Please choose a different title.",
@@ -197,44 +207,137 @@ exports.createEvent = async (req, res) => {
 // @desc    Get all events (with filters)
 // @route   GET /api/events
 // @access  Public
+// @desc    Get dashboard statistics
+// @route   GET /api/events/dashboard/stats
+// @access  Public
+exports.getDashboardStats = async (req, res) => {
+  try {
+    // Count active events (upcoming and ongoing, exclude cancelled)
+    const activeEventsCount = await Event.countDocuments({
+      status: { $in: ["upcoming", "ongoing"] },
+    });
+
+    // Count registered donors (users with donor role)
+    const registeredDonorsCount = await User.countDocuments({
+      role: "donor",
+    });
+
+    res.status(200).json({
+      activeEvents: activeEventsCount,
+      registeredDonors: registeredDonorsCount,
+    });
+  } catch (error) {
+    console.error("Get dashboard stats error:", error);
+    res.status(500).json({
+      message: "Error fetching dashboard statistics",
+      error: error.message,
+    });
+  }
+};
+
 exports.getAllEvents = async (req, res) => {
   try {
-    const { status, bloodType, location, organizer } = req.query;
+    const {
+      status,
+      bloodType,
+      location,
+      organizer,
+      date,
+      search,
+      page = 1,
+      limit = 6,
+    } = req.query;
 
-    let query = {};
+    const query = { status: { $ne: "cancelled" } };
+    const andClauses = [];
 
-    // Filter by status
     if (status) {
       query.status = status;
     }
 
-    // Filter by blood type
     if (bloodType) {
       query.bloodTypesNeeded = bloodType;
     }
 
-    // Filter by location (text search)
-    if (location) {
+    if (location && !search) {
       query.location = { $regex: location, $options: "i" };
     }
 
-    // Filter by organizer
     if (organizer) {
       query.organizer = organizer;
     }
 
+    if (search && search.trim()) {
+      const searchValue = search.trim();
+      andClauses.push({
+        $or: [
+          { location: { $regex: searchValue, $options: "i" } },
+          { eventTitle: { $regex: searchValue, $options: "i" } },
+          { organizationName: { $regex: searchValue, $options: "i" } },
+        ],
+      });
+    }
+
+    if (date) {
+      const searchDate = new Date(date);
+      if (!Number.isNaN(searchDate.getTime())) {
+        const startOfDay = new Date(searchDate);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(startOfDay);
+        endOfDay.setDate(endOfDay.getDate() + 1);
+
+        andClauses.push({
+          $or: [
+            {
+              eventDate: {
+                $gte: startOfDay,
+                $lt: endOfDay,
+              },
+            },
+            {
+              eventDate: { $lte: startOfDay },
+              endDate: { $gte: startOfDay },
+            },
+          ],
+        });
+      }
+    }
+
+    if (andClauses.length > 0) {
+      query.$and = andClauses;
+    }
+
+    // Calculate pagination
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Get total count for pagination
+    const totalEvents = await Event.countDocuments(query);
+
+    // Get paginated events
     const events = await Event.find(query)
-      .populate("organizer", "fullName email profilePicture")
-      .sort({ eventDate: 1 });
+      .populate("organizer", "fullName email profilePicture organization")
+      .sort({ eventDate: 1, createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
 
     // Update status for each event
     for (let event of events) {
-      event.updateStatus();
-      await event.save();
+      const previousStatus = event.status;
+      const updatedStatus = event.updateStatus();
+      if (updatedStatus !== previousStatus) {
+        await event.save();
+      }
     }
 
     res.status(200).json({
       count: events.length,
+      total: totalEvents,
+      page: pageNum,
+      totalPages: Math.ceil(totalEvents / limitNum),
+      hasMore: pageNum < Math.ceil(totalEvents / limitNum),
       events,
     });
   } catch (error) {

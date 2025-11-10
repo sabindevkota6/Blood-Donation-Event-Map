@@ -10,10 +10,12 @@ const {
   deleteEvent,
   registerForEvent,
   cancelRegistration,
+  getDashboardStats,
 } = require("../controllers/eventController");
 const { protect } = require("../middleware/auth");
 
 // Public routes
+router.get("/dashboard/stats", getDashboardStats);
 router.get("/", getAllEvents);
 router.get("/:id", getEvent);
 

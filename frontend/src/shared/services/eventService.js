@@ -1,6 +1,18 @@
 const API_URL = "http://localhost:5000/api/events";
 
 const eventService = {
+  // Get dashboard statistics
+  getDashboardStats: async () => {
+    const response = await fetch(`${API_URL}/dashboard/stats`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch dashboard statistics");
+    }
+
+    return data;
+  },
+
   // Create new event
   createEvent: async (eventData, token) => {
     const response = await fetch(API_URL, {

@@ -336,6 +336,27 @@ const EventsSection = ({
     return `${current} registered`;
   };
 
+  const getDateRangeLabel = (event) => {
+    const startRaw = event?.eventDate || event?.startDate;
+    const endRaw = event?.endDate;
+
+    if (!startRaw) {
+      return 'Date not set';
+    }
+
+    const startDate = new Date(startRaw);
+    const endDate = endRaw ? new Date(endRaw) : null;
+
+    const startTime = startDate.getTime();
+    const endTime = endDate ? endDate.getTime() : Number.NaN;
+
+    if (!endDate || Number.isNaN(endTime) || startTime === endTime) {
+      return formatDate(startRaw);
+    }
+
+    return `${formatDate(startRaw)} - ${formatDate(endRaw)}`;
+  };
+
   return (
     <section className="events-section">
       <h2 className="section-title">{title}</h2>
@@ -399,7 +420,7 @@ const EventsSection = ({
               <div className="event-meta-item">
                 <FaCalendarAlt className="event-meta-icon" />
                 <span>
-                  {formatDate(event.eventDate)}
+                  {getDateRangeLabel(event)}
                   {event.eventTime ? ` • ${event.eventTime}` : ''}
                 </span>
               </div>
