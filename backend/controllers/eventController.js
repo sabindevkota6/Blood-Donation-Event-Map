@@ -364,11 +364,18 @@ exports.getMyEvents = async (req, res) => {
       eventDate: -1,
     });
 
-    // Update status for each event
-    for (let event of events) {
-      event.updateStatus();
-      await event.save();
-    }
+    // Update status for each event (only save if changed)
+    const updatePromises = events.map(async (event) => {
+      const previousStatus = event.status;
+      const updatedStatus = event.updateStatus();
+      if (updatedStatus !== previousStatus) {
+        return event.save();
+      }
+      return null;
+    });
+
+    // Execute all updates in parallel
+    await Promise.all(updatePromises);
 
     res.status(200).json({
       count: events.length,
