@@ -64,6 +64,7 @@ function Dashboard() {
       const filters = {
         page,
         limit: PAGE_SIZE,
+        status: 'active', // Only fetch upcoming and ongoing events
       };
 
       if (searchQuery.trim()) {
@@ -194,43 +195,35 @@ function Dashboard() {
       {showModal && <ProfileCompleteModal onContinue={handleContinue} />}
       
       <div className="dashboard-container">
-        {/* Welcome Section */}
+        {/* Welcome Section (card contains stats and CTA) */}
         <div className="welcome-section">
-          <h1 className="welcome-title">Welcome, {user?.fullName}!</h1>
-          <p className="welcome-subtitle">Help save lives by participating in blood donation events</p>
+          <div className="welcome-card">
+            <div className="welcome-inner">
+              <div className="welcome-copy">
+                <h1 className="welcome-title">Welcome, {user?.fullName}!</h1>
+                <p className="welcome-subtitle">Help save lives by participating in blood donation events</p>
+              </div>
+
+              <div className="welcome-stats">
+                <div className="welcome-stat">
+                  <div className="welcome-stat-number">{stats.activeEvents}</div>
+                  <div className="welcome-stat-label">Active Events</div>
+                </div>
+
+                <div className="welcome-stat">
+                  <div className="welcome-stat-number">{stats.registeredDonors}</div>
+                  <div className="welcome-stat-label">Registered Donors</div>
+                </div>
+              </div>
+
+              {user?.role === 'organizer' && (
+                <div className="welcome-actions">
+                  <button className="btn-view-my-events" onClick={() => navigate('/events')}>View My Events</button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-
-        {/* Stats Cards */}
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon active-events">
-              <FaCalendarAlt />
-            </div>
-            <div className="stat-content">
-              <h3 className="stat-number">{stats.activeEvents}</h3>
-              <p className="stat-label">Active Events</p>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-icon registered-donors">
-              <FaHeart />
-            </div>
-            <div className="stat-content">
-              <h3 className="stat-number">{stats.registeredDonors}</h3>
-              <p className="stat-label">Registered Donors</p>
-            </div>
-          </div>
-        </div>
-
-        {/* View My Events Button for Organizers */}
-        {user?.role === 'organizer' && (
-          <div className="my-events-action">
-            <button className="btn-view-my-events" onClick={() => navigate('/events')}>
-              View My Events
-            </button>
-          </div>
-        )}
 
         {/* Find Events Section */}
         <div className="find-events-section">
@@ -280,10 +273,10 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Upcoming Events Section */}
+        {/* All Events Section */}
         <div className="events-section">
           <h2 className="section-title">
-            {searchQuery || selectedBloodType ? 'Search Results' : 'Upcoming Events'}
+            {searchQuery || selectedBloodType ? 'Search Results' : 'All Events'}
           </h2>
 
           {eventsLoading && currentPage === 1 ? (
@@ -311,8 +304,7 @@ function Dashboard() {
                         <FaCalendarAlt className="detail-icon" />
                         <span>
                           {formatDate(event.startDate || event.eventDate)}
-                          {' - '}
-                          {formatDate(event.endDate || event.startDate || event.eventDate)}
+                          {event.endDate && event.endDate !== event.startDate && ` - ${formatDate(event.endDate)}`}
                         </span>
                       </div>
 
@@ -323,12 +315,7 @@ function Dashboard() {
 
                       <div className="event-detail-item">
                         <FaMapMarkerAlt className="detail-icon" />
-                        <span>{event.location}</span>
-                      </div>
-
-                      <div className="event-detail-item">
-                        <FaUsers className="detail-icon" />
-                        <span>{event.registeredDonors?.length || 0} / {event.expectedCapacity} participants</span>
+                        <span>{event.location?.split(',')[0]?.trim() || event.location}</span>
                       </div>
                     </div>
 
@@ -341,6 +328,11 @@ function Dashboard() {
                           </span>
                         ))}
                       </div>
+                    </div>
+
+                    <div className="event-participants">
+                      <FaUsers className="participants-icon" />
+                      <span className="participants-count">{event.registeredDonors?.length || 0} participants</span>
                     </div>
 
                     <button 

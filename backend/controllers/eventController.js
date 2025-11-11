@@ -252,7 +252,12 @@ exports.getAllEvents = async (req, res) => {
     const andClauses = [];
 
     if (status) {
-      query.status = status;
+      // If status is 'active', include both 'upcoming' and 'ongoing'
+      if (status === "active") {
+        query.status = { $in: ["upcoming", "ongoing"] };
+      } else {
+        query.status = status;
+      }
     }
 
     if (bloodType) {

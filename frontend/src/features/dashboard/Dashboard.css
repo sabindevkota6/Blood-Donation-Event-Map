@@ -11,126 +11,113 @@
 
 /* Welcome Section */
 .welcome-section {
-  text-align: center;
-  margin-bottom: 40px;
-  background: white;
-  padding: 40px;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(220, 53, 69, 0.08);
+  margin-bottom: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .welcome-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
   color: #dc3545;
-  margin: 0 0 12px 0;
+  margin: 0 0 6px 0;
 }
 
 .welcome-subtitle {
-  font-size: 16px;
+  font-size: 13px;
   color: #666;
-  margin: 0;
+  margin: 0 0 24px 0;
+  font-weight: 400;
 }
 
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-  margin-bottom: 40px;
-}
-
-.stat-card {
+/* welcome card containing stats */
+.welcome-card {
+  width: 100%;
+  max-width: none;
   background: white;
-  padding: 32px;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(220, 53, 69, 0.08);
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 20px rgba(220, 53, 69, 0.15);
-}
-
-.stat-icon {
-  width: 64px;
-  height: 64px;
+  padding: 40px 32px 36px;
   border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
+  flex-direction: column;
   align-items: center;
+}
+
+.welcome-copy {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.welcome-stats {
+  display: flex;
+  gap: 640px;
   justify-content: center;
-  font-size: 28px;
-  color: white;
+  align-items: flex-start;
+  width: 100%;
+  margin-bottom: 20px;
 }
 
-.stat-icon.active-events {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+.welcome-stat {
+  text-align: center;
 }
 
-.stat-icon.registered-donors {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-number {
-  font-size: 36px;
+.welcome-stat-number {
+  font-size: 48px;
   font-weight: 700;
   color: #dc3545;
-  margin: 0 0 4px 0;
+  line-height: 1;
+  margin-bottom: 8px;
 }
 
-.stat-label {
-  font-size: 16px;
+.welcome-stat-label {
+  font-size: 13px;
   color: #666;
-  margin: 0;
-  font-weight: 500;
+  font-weight: 400;
 }
 
-/* My Events Action */
-.my-events-action {
-  text-align: center;
-  margin-bottom: 40px;
+.welcome-actions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.welcome-inner {
+  width: 100%;
+  max-width: 700px;
 }
 
 .btn-view-my-events {
-  padding: 14px 32px;
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  padding: 11px 32px;
+  background: #dc3545;
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+  transition: background 0.2s ease;
+  box-shadow: none;
 }
 
 .btn-view-my-events:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  background: #c82333;
 }
 
 /* Find Events Section */
 .find-events-section {
-  background: white;
-  padding: 32px;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(220, 53, 69, 0.08);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
   margin-bottom: 40px;
 }
 
 .section-title {
   font-size: 24px;
   font-weight: 700;
-  color: #333;
-  margin: 0 0 24px 0;
+  color: #dc3545;
+  margin: 0 0 20px 0;
 }
 
 /* Search Form */
@@ -138,7 +125,7 @@
   display: flex;
   gap: 12px;
   margin-bottom: 32px;
-  flex-wrap: wrap;
+  align-items: center;
 }
 
 .search-input-wrapper {
@@ -201,7 +188,7 @@
 }
 
 .btn-search {
-  padding: 14px 32px;
+  padding: 12px 20px;
   background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
   color: white;
   border: none;
@@ -238,15 +225,21 @@
 }
 
 .blood-type-filter-btn {
-  padding: 10px 20px;
+  padding: 8px 12px;
   background: white;
   color: #666;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  border: 2px solid #e9e9ea;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 6px rgba(220, 53, 69, 0.03);
+  min-width: 46px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .blood-type-filter-btn:hover {
@@ -276,16 +269,15 @@
 .event-card {
   background: white;
   border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 2px 12px rgba(220, 53, 69, 0.08);
-  transition: transform 0.3s, box-shadow 0.3s;
-  border: 2px solid transparent;
+  padding: 28px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: none;
 }
 
 .event-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 6px 24px rgba(220, 53, 69, 0.15);
-  border-color: #dc3545;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .event-header {
@@ -293,64 +285,55 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 }
 
 .event-title {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
-  color: #333;
+  color: #2c2c2c;
   margin: 0;
   flex: 1;
   line-height: 1.3;
 }
 
 .event-status {
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: capitalize;
-  white-space: nowrap;
-}
-
-.status-upcoming {
-  background: #e3f2fd;
-  color: #1976d2;
-}
-
-.status-ongoing {
-  background: #fff3e0;
-  color: #f57c00;
-}
-
-.status-completed {
-  background: #f1f8e9;
-  color: #558b2f;
+  display: none;
 }
 
 .event-organization {
-  font-size: 14px;
+  font-size: 16px;
   color: #666;
-  margin: 0 0 20px 0;
+  margin: 0 0 24px 0;
+  font-weight: 400;
 }
 
 .event-details {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
-  padding: 16px;
-  background: #f9f9f9;
-  border-radius: 8px;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  align-items: flex-start;
+  width: 100%;
 }
 
 .event-detail-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 14px;
+  gap: 10px;
+  font-size: 15px;
   color: #555;
+  text-align: left;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.event-detail-item span {
+  text-align: left;
+  flex: 1;
 }
 
 .detail-icon {
@@ -361,45 +344,74 @@
 
 .event-blood-types {
   margin-bottom: 20px;
+  text-align: left;
+  width: 100%;
 }
 
 .blood-types-label {
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6c757d;
+  margin: 0 0 12px 0;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  width: 100%;
+}
+
+.event-participants {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.participants-icon {
+  color: #dc3545;
+  font-size: 16px;
+}
+
+.participants-count {
+  font-size: 16px;
   font-weight: 600;
-  color: #666;
-  margin: 0 0 10px 0;
+  color: #dc3545;
 }
 
 .blood-types-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
+  justify-content: flex-start;
 }
 
 .blood-type-chip {
-  padding: 6px 14px;
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 5px 10px;
+  background: white;
+  color: #dc3545;
+  border: 2px solid #dc3545;
+  border-radius: 24px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .btn-view-details {
   width: 100%;
-  padding: 12px;
+  padding: 14px 12px;
   background: white;
   color: #dc3545;
   border: 2px solid #dc3545;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
 }
 
 .btn-view-details:hover {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  background: #dc3545;
   color: white;
 }
 
@@ -461,13 +473,29 @@
 }
 
 /* Responsive Design */
+@media (max-width: 900px) {
+  .welcome-stats {
+    gap: 140px;
+  }
+}
+
 @media (max-width: 768px) {
   .dashboard-container {
     padding: 24px 16px;
   }
 
-  .welcome-section {
-    padding: 24px;
+  .welcome-card {
+    padding: 32px 20px 28px;
+  }
+
+  .welcome-stats {
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .welcome-stat-number {
+    font-size: 40px;
   }
 
   .welcome-title {
@@ -475,34 +503,16 @@
   }
 
   .welcome-subtitle {
-    font-size: 14px;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .stat-card {
-    padding: 20px;
-  }
-
-  .stat-icon {
-    width: 52px;
-    height: 52px;
-    font-size: 24px;
-  }
-
-  .stat-number {
-    font-size: 28px;
-  }
-
-  .find-events-section {
-    padding: 20px;
+    font-size: 12px;
   }
 
   .search-form {
     flex-direction: column;
+  }
+
+  .search-input-wrapper,
+  .date-input-wrapper {
+    min-width: unset;
   }
 
   .btn-search {
@@ -528,16 +538,17 @@
     font-size: 20px;
   }
 
+  .welcome-stat-number {
+    font-size: 32px;
+  }
+
   .section-title {
     font-size: 20px;
   }
 
-  .blood-type-filters {
-    gap: 8px;
-  }
-
   .blood-type-filter-btn {
-    padding: 8px 16px;
-    font-size: 13px;
+    min-width: 42px;
+    height: 42px;
+    font-size: 12px;
   }
 }
