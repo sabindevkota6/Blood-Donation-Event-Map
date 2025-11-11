@@ -33,6 +33,13 @@ function Events() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Scroll to top when success or error messages change
+  useEffect(() => {
+    if (success || error) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [success, error]);
+
   useEffect(() => {
     if (!user?.token) {
       setEvents([]);
@@ -148,7 +155,7 @@ function Events() {
   };
 
   const handleEditEvent = (eventId) => {
-    navigate(`/events/${eventId}/edit`);
+    navigate(`/events/edit/${eventId}`);
   };
 
   const handleCancelEvent = async (eventId) => {
@@ -278,6 +285,8 @@ function Events() {
                   getStatusLabel={getStatusLabel}
                   getStatusBadgeClass={getStatusBadgeClass}
                   onViewDetails={handleViewDetails}
+                  onEdit={handleEditEvent}
+                  onCancel={handleCancelEvent}
                 />
               )}
 
@@ -289,6 +298,7 @@ function Events() {
                   getStatusLabel={getStatusLabel}
                   getStatusBadgeClass={getStatusBadgeClass}
                   onViewDetails={handleViewDetails}
+                  onDelete={handleDeleteEvent}
                   isCompletedSection
                 />
               )}
@@ -373,7 +383,7 @@ const EventsSection = ({
                 )}
               </div>
 
-              {event.status === 'upcoming' && (
+              {(event.status === 'upcoming' || event.status === 'ongoing') && (
                 <div className="event-actions">
                   {onEdit && (
                     <button
@@ -398,7 +408,7 @@ const EventsSection = ({
                 </div>
               )}
 
-              {event.status === 'cancelled' && onDelete && (
+              {(event.status === 'cancelled' || event.status === 'completed') && onDelete && (
                 <div className="event-actions">
                   <button
                     type="button"

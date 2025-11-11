@@ -77,6 +77,7 @@ exports.createEvent = async (req, res) => {
       eventDate: legacyEventDate,
       eventTime,
       location,
+      locationCoordinates,
       expectedCapacity,
       bloodTypesNeeded,
       eventDescription,
@@ -183,6 +184,7 @@ exports.createEvent = async (req, res) => {
       endDate: eventEndDate,
       eventTime,
       location,
+      locationCoordinates,
       expectedCapacity,
       bloodTypesNeeded,
       eventDescription,
@@ -459,6 +461,7 @@ exports.updateEvent = async (req, res) => {
       eventDate,
       eventTime,
       location,
+      locationCoordinates,
       expectedCapacity,
       bloodTypesNeeded,
       eventDescription,
@@ -510,6 +513,7 @@ exports.updateEvent = async (req, res) => {
 
     if (eventTime) event.eventTime = eventTime;
     if (location) event.location = location;
+    if (locationCoordinates) event.locationCoordinates = locationCoordinates;
     if (expectedCapacity) event.expectedCapacity = expectedCapacity;
     if (bloodTypesNeeded) event.bloodTypesNeeded = bloodTypesNeeded;
     if (eventDescription) event.eventDescription = eventDescription;
@@ -589,9 +593,9 @@ exports.cancelEvent = async (req, res) => {
       });
     }
 
-    if (event.status === "completed" || event.status === "ongoing") {
+    if (event.status === "completed") {
       return res.status(400).json({
-        message: `Cannot cancel an event that is ${event.status}`,
+        message: "Cannot cancel an event that is completed",
       });
     }
 

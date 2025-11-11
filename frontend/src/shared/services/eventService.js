@@ -77,6 +77,22 @@ const eventService = {
     return data;
   },
 
+  // Get event by ID with token
+  getEventById: async (eventId, token) => {
+    const response = await fetch(`${API_URL}/${eventId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch event");
+    }
+
+    return data;
+  },
+
   // Update event
   updateEvent: async (eventId, eventData, token) => {
     const response = await fetch(`${API_URL}/${eventId}`, {
