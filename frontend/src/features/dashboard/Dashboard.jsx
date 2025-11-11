@@ -315,7 +315,9 @@ function Dashboard() {
 
                       <div className="event-detail-item">
                         <FaMapMarkerAlt className="detail-icon" />
-                        <span>{event.location?.split(',')[0]?.trim() || event.location}</span>
+                        <span className="location-text">
+                          {event.location?.split(',').slice(0, 2).join(',').trim() || event.location}
+                        </span>
                       </div>
                     </div>
 
