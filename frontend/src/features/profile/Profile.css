@@ -148,6 +148,17 @@
   font-weight: 400;
 }
 
+/* Eligibility Status Styling */
+.eligibility-status.eligible {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.eligibility-status.not-eligible {
+  color: #333;
+  font-weight: 400;
+}
+
 /* Achievements Grid */
 .achievements-grid {
   display: grid;

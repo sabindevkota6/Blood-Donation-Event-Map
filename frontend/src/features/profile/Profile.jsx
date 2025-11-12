@@ -45,6 +45,33 @@ function Profile() {
     });
   };
 
+  const getEligibilityStatus = () => {
+    if (!profileData?.lastDonationDate) {
+      return {
+        status: 'Eligible to Donate',
+        className: 'eligible'
+      };
+    }
+
+    const lastDonation = new Date(profileData.lastDonationDate);
+    const today = new Date();
+    const daysSinceLastDonation = Math.floor((today - lastDonation) / (1000 * 60 * 60 * 24));
+
+    if (daysSinceLastDonation >= 10) {
+      return {
+        status: 'Eligible to Donate',
+        className: 'eligible'
+      };
+    } else {
+      const eligibleDate = new Date(lastDonation);
+      eligibleDate.setDate(eligibleDate.getDate() + 10);
+      return {
+        status: `Not eligible before ${eligibleDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+        className: 'not-eligible'
+      };
+    }
+  };
+
   if (loading) {
     return (
       <div className="profile-container">
@@ -202,10 +229,8 @@ function Profile() {
                       <div className="info-label">
                         <FaTint className="info-icon" /> Donor Eligibility
                       </div>
-                      <div className="info-value">
-                        {profileData?.donorEligibility === 'eligible' ? 'Eligible to Donate' : 
-                         profileData?.donorEligibility === 'not-eligible' ? 'Not Eligible' : 
-                         'Not Recorded'}
+                      <div className={`info-value eligibility-status ${getEligibilityStatus().className}`}>
+                        {getEligibilityStatus().status}
                       </div>
                     </div>
                   </>

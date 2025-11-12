@@ -59,6 +59,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    token: user?.token || null,
     loading,
     error,
     login,

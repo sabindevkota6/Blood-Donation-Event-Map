@@ -71,6 +71,18 @@ const userSchema = new mongoose.Schema(
     lastDonationDate: {
       type: Date,
     },
+    registeredEvents: [
+      {
+        eventId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Event",
+        },
+        registeredAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
     donorEligibility: {
       type: String,
       enum: ["eligible", "not-eligible", "not-recorded"],

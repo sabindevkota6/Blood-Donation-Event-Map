@@ -8,6 +8,7 @@ const {
   updateEvent,
   cancelEvent,
   deleteEvent,
+  checkEligibility,
   registerForEvent,
   cancelRegistration,
   getDashboardStats,
@@ -27,6 +28,7 @@ router.post("/:id/cancel", protect, cancelEvent);
 router.delete("/:id", protect, deleteEvent);
 
 // Protected routes - Donors
+router.post("/:id/check-eligibility", protect, checkEligibility);
 router.post("/:id/register", protect, registerForEvent);
 router.post("/:id/cancel-registration", protect, cancelRegistration);
 

@@ -658,6 +658,129 @@ exports.deleteEvent = async (req, res) => {
   }
 };
 
+// @desc    Check registration eligibility
+// @route   POST /api/events/:id/check-eligibility
+// @access  Private (Donors only)
+exports.checkEligibility = async (req, res) => {
+  try {
+    if (req.user.role !== "donor") {
+      return res.status(403).json({
+        message: "Only donors can check eligibility",
+        eligible: false,
+      });
+    }
+
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({
+        message: "Event not found",
+        eligible: false,
+      });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        eligible: false,
+      });
+    }
+
+    // Check 1: Blood type match
+    if (!user.bloodType) {
+      return res.status(200).json({
+        eligible: false,
+        message:
+          "Please update your blood type in your profile before registering.",
+      });
+    }
+
+    if (!event.bloodTypesNeeded.includes(user.bloodType)) {
+      return res.status(200).json({
+        eligible: false,
+        message: `Your blood type (${
+          user.bloodType
+        }) is not needed for this event. Required types: ${event.bloodTypesNeeded.join(
+          ", "
+        )}`,
+      });
+    }
+
+    // Check 2: Last donation date (must be more than 10 days ago)
+    if (user.lastDonationDate) {
+      const daysSinceLastDonation = Math.floor(
+        (new Date() - new Date(user.lastDonationDate)) / (1000 * 60 * 60 * 24)
+      );
+
+      if (daysSinceLastDonation < 10) {
+        const daysRemaining = 10 - daysSinceLastDonation;
+        return res.status(200).json({
+          eligible: false,
+          message: `You must wait ${daysRemaining} more day(s) before donating again. Last donation: ${new Date(
+            user.lastDonationDate
+          ).toLocaleDateString()}`,
+        });
+      }
+    }
+
+    // Check 3: Not already registered for concurrent events
+    if (user.registeredEvents && user.registeredEvents.length > 0) {
+      // Find active event registrations
+      const activeEventIds = user.registeredEvents.map((re) => re.eventId);
+      const activeEvents = await Event.find({
+        _id: { $in: activeEventIds },
+        eventDate: { $gte: new Date() }, // Events that haven't ended yet
+      });
+
+      if (activeEvents.length > 0) {
+        return res.status(200).json({
+          eligible: false,
+          message: `You are already registered for an event (${activeEvents[0].eventTitle}). You cannot register for multiple events simultaneously.`,
+        });
+      }
+    }
+
+    // Check 4: Event not full
+    if (event.currentAttendees >= event.expectedCapacity) {
+      return res.status(200).json({
+        eligible: false,
+        message: "This event is already full.",
+      });
+    }
+
+    // Check 5: Already registered for this event
+    const alreadyRegistered =
+      event.attendees &&
+      event.attendees.some(
+        (attendee) => attendee.donor.toString() === req.user.id
+      );
+
+    if (alreadyRegistered) {
+      return res.status(200).json({
+        eligible: false,
+        message: "You are already registered for this event.",
+      });
+    }
+
+    // All checks passed
+    res.status(200).json({
+      eligible: true,
+      message: "You are eligible to register for this event.",
+      userProfile: {
+        bloodType: user.bloodType,
+        lastDonationDate: user.lastDonationDate,
+      },
+    });
+  } catch (error) {
+    console.error("Check eligibility error:", error);
+    res.status(500).json({
+      message: "Error checking eligibility",
+      error: error.message,
+      eligible: false,
+    });
+  }
+};
+
 // @desc    Register for event (for donors)
 // @route   POST /api/events/:id/register
 // @access  Private (Donors only)
@@ -677,17 +800,45 @@ exports.registerForEvent = async (req, res) => {
       });
     }
 
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    // Re-check eligibility (security measure)
+    if (!event.bloodTypesNeeded.includes(user.bloodType)) {
+      return res.status(400).json({
+        message: "Your blood type is not needed for this event",
+      });
+    }
+
+    if (user.lastDonationDate) {
+      const daysSinceLastDonation = Math.floor(
+        (new Date() - new Date(user.lastDonationDate)) / (1000 * 60 * 60 * 24)
+      );
+
+      if (daysSinceLastDonation < 10) {
+        return res.status(400).json({
+          message: "You must wait at least 10 days between donations",
+        });
+      }
+    }
+
     // Check if event is full
-    if (event.isFull) {
+    if (event.currentAttendees >= event.expectedCapacity) {
       return res.status(400).json({
         message: "Event is full",
       });
     }
 
     // Check if already registered
-    const alreadyRegistered = event.attendees.some(
-      (attendee) => attendee.donor.toString() === req.user.id
-    );
+    const alreadyRegistered =
+      event.attendees &&
+      event.attendees.some(
+        (attendee) => attendee.donor.toString() === req.user.id
+      );
 
     if (alreadyRegistered) {
       return res.status(400).json({
@@ -696,12 +847,35 @@ exports.registerForEvent = async (req, res) => {
     }
 
     // Add donor to attendees
+    if (!event.attendees) {
+      event.attendees = [];
+    }
+
     event.attendees.push({
       donor: req.user.id,
       status: "registered",
     });
 
+    // Increment currentAttendees
+    event.currentAttendees = (event.currentAttendees || 0) + 1;
+
     await event.save();
+
+    // Update user's registered events and last donation date
+    if (!user.registeredEvents) {
+      user.registeredEvents = [];
+    }
+
+    user.registeredEvents.push({
+      eventId: event._id,
+      registeredAt: new Date(),
+    });
+
+    // Set lastDonationDate to the event date (when they will donate)
+    user.lastDonationDate = event.eventDate;
+    user.totalDonations = (user.totalDonations || 0) + 1;
+
+    await user.save();
 
     res.status(200).json({
       message: "Successfully registered for event",

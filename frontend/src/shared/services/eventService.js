@@ -149,6 +149,26 @@ const eventService = {
     return data;
   },
 
+  // Check eligibility for event registration
+  checkEligibility: async (eventId, token) => {
+    const response = await fetch(`${API_URL}/${eventId}/check-eligibility`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error = new Error(data.message || "Failed to check eligibility");
+      error.response = { data };
+      throw error;
+    }
+
+    return data;
+  },
+
   // Register for event (donors)
   registerForEvent: async (eventId, token) => {
     const response = await fetch(`${API_URL}/${eventId}/register`, {
@@ -161,7 +181,9 @@ const eventService = {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Failed to register for event");
+      const error = new Error(data.message || "Failed to register for event");
+      error.response = { data };
+      throw error;
     }
 
     return data;
@@ -179,7 +201,9 @@ const eventService = {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Failed to cancel registration");
+      const error = new Error(data.message || "Failed to cancel registration");
+      error.response = { data };
+      throw error;
     }
 
     return data;

@@ -3,17 +3,23 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { FaArrowLeft, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUsers, FaCheckCircle } from 'react-icons/fa';
 import { useAuth } from '../../shared/context/AuthContext';
 import eventService from '../../shared/services/eventService';
+import profileService from '../../shared/services/profileService';
 import LocationMap from '../../shared/components/LocationMap';
 import Navbar from '../../shared/components/Navbar';
+import EventRegistrationModal from './EventRegistrationModal';
 import './EventDetail.css';
 
 function EventDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [eligibilityError, setEligibilityError] = useState('');
+  const [userProfile, setUserProfile] = useState(null);
+  const [isRegistered, setIsRegistered] = useState(false);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -22,6 +28,19 @@ function EventDetail() {
         const response = await eventService.getEvent(id);
         const eventData = response.event || response;
         setEvent(eventData);
+        
+        // Check if user is already registered for this event
+        if (user && user._id && eventData.attendees) {
+          const registered = eventData.attendees.some(
+            (attendee) => {
+              const donorId = typeof attendee.donor === 'string' 
+                ? attendee.donor 
+                : attendee.donor?._id;
+              return donorId === user._id;
+            }
+          );
+          setIsRegistered(registered);
+        }
       } catch (err) {
         console.error('Failed to fetch event:', err);
         setError('Failed to load event details');
@@ -31,7 +50,7 @@ function EventDetail() {
     };
 
     fetchEvent();
-  }, [id]);
+  }, [id, user]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -41,6 +60,60 @@ function EventDetail() {
       day: 'numeric',
       year: 'numeric'
     });
+  };
+
+  const handleRegisterClick = async () => {
+    try {
+      setEligibilityError('');
+      
+      // Check eligibility
+      const response = await eventService.checkEligibility(id, token);
+      
+      if (response.eligible) {
+        // Fetch user profile
+        const profileData = await profileService.getProfile(token);
+        setUserProfile(profileData);
+        setShowRegistrationModal(true);
+      } else {
+        setEligibilityError(response.message);
+        // Show error message for 5 seconds
+        setTimeout(() => setEligibilityError(''), 5000);
+      }
+    } catch (err) {
+      console.error('Error checking eligibility:', err);
+      setEligibilityError(err.response?.data?.message || 'Failed to check eligibility');
+      setTimeout(() => setEligibilityError(''), 5000);
+    }
+  };
+
+  const handleRegistration = async () => {
+    try {
+      await eventService.registerForEvent(id, token);
+      setShowRegistrationModal(false);
+      
+      // Refresh event data and update registration status
+      const response = await eventService.getEvent(id);
+      const eventData = response.event || response;
+      setEvent(eventData);
+      
+      // Check registration status from updated event data
+      if (user && user._id && eventData.attendees) {
+        const registered = eventData.attendees.some(
+          (attendee) => {
+            const donorId = typeof attendee.donor === 'string' 
+              ? attendee.donor 
+              : attendee.donor?._id;
+            return donorId === user._id;
+          }
+        );
+        setIsRegistered(registered);
+      }
+      
+      alert('Successfully registered for the event!');
+    } catch (err) {
+      console.error('Error registering for event:', err);
+      alert(err.response?.data?.message || 'Failed to register for event');
+    }
   };
 
   if (loading) {
@@ -249,13 +322,43 @@ function EventDetail() {
             {/* Actions */}
             <div className="actions-section">
               <h2 className="section-title">Actions</h2>
-              <p className="actions-description">
-                If you want to register as a donor for this event, sign-up or sign-in with a donor account.
-              </p>
+              {user && user.role === 'donor' ? (
+                <>
+                  <p className="actions-description">
+                    Be a donor by registering for the event and help us save lives
+                  </p>
+                  {eligibilityError && (
+                    <div className="eligibility-error">
+                      {eligibilityError}
+                    </div>
+                  )}
+                  <button 
+                    className={`register-event-btn ${isRegistered ? 'registered' : ''}`}
+                    onClick={handleRegisterClick}
+                    disabled={isRegistered}
+                  >
+                    {isRegistered ? 'Registered' : 'Register for Event'}
+                  </button>
+                </>
+              ) : (
+                <p className="actions-description">
+                  If you want to register as a donor for this event, sign-up or sign-in with a donor account.
+                </p>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Registration Modal */}
+      {showRegistrationModal && userProfile && (
+        <EventRegistrationModal
+          event={event}
+          userProfile={userProfile}
+          onClose={() => setShowRegistrationModal(false)}
+          onRegister={handleRegistration}
+        />
+      )}
     </div>
   );
 }
