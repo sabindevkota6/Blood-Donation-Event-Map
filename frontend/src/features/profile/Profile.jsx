@@ -72,6 +72,15 @@ function Profile() {
     }
   };
 
+  const formatLocation = (address) => {
+    if (!address) return 'Not provided';
+    const parts = address.split(',');
+    if (parts.length >= 2) {
+      return `${parts[0].trim()}, ${parts[1].trim()}`;
+    }
+    return address;
+  };
+
   if (loading) {
     return (
       <div className="profile-container">
@@ -157,7 +166,7 @@ function Profile() {
                   <div className="info-label">
                     <FaMapMarkerAlt className="info-icon" /> Location
                   </div>
-                  <div className="info-value">{profileData?.location?.address || 'Not provided'}</div>
+                  <div className="info-value">{formatLocation(profileData?.location?.address)}</div>
                 </div>
               </div>
 

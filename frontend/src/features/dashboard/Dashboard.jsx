@@ -304,7 +304,7 @@ function Dashboard() {
                         <FaCalendarAlt className="detail-icon" />
                         <span>
                           {formatDate(event.startDate || event.eventDate)}
-                          {event.endDate && event.endDate !== event.startDate && ` - ${formatDate(event.endDate)}`}
+                          {event.endDate && new Date(event.endDate).toDateString() !== new Date(event.startDate || event.eventDate).toDateString() && ` - ${formatDate(event.endDate)}`}
                         </span>
                       </div>
 
@@ -334,7 +334,7 @@ function Dashboard() {
 
                     <div className="event-participants">
                       <FaUsers className="participants-icon" />
-                      <span className="participants-count">{event.registeredDonors?.length || 0} participants</span>
+                      <span className="participants-count">{event.currentAttendees || 0} participants</span>
                     </div>
 
                     <button 

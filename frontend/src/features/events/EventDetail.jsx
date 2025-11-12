@@ -62,6 +62,38 @@ function EventDetail() {
     });
   };
 
+  const formatDateRange = (startDate, endDate) => {
+    if (!endDate || startDate === endDate) {
+      return formatDate(startDate);
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Check if same date
+    if (start.toDateString() === end.toDateString()) {
+      return formatDate(startDate);
+    }
+
+    // Format start date
+    const startFormatted = start.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+
+    // Format end date
+    const endFormatted = end.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+
+    return `${startFormatted} - ${endFormatted}`;
+  };
+
   const handleRegisterClick = async () => {
     try {
       setEligibilityError('');
@@ -171,7 +203,7 @@ function EventDetail() {
               <span>Date & Time</span>
             </div>
             <div className="info-card-content">
-              <p className="info-date">{formatDate(event.eventDate)}</p>
+              <p className="info-date">{formatDateRange(event.eventDate, event.endDate)}</p>
               <div className="info-time">
                 <FaClock className="time-icon" />
                 <span>{event.eventTime}</span>

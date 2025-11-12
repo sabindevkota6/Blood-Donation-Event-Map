@@ -87,7 +87,7 @@
 /* Personal Info Layout */
 .personal-info-layout {
   display: flex;
-  gap: 32px;
+  gap: 80px;
 }
 
 .avatar-section {
@@ -113,7 +113,7 @@
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px 40px;
+  gap: 24px 175px;
   flex: 1;
 }
 
