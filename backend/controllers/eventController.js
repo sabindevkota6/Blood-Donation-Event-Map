@@ -708,17 +708,26 @@ exports.checkEligibility = async (req, res) => {
 
     // Check 2: Last donation date (must be more than 10 days ago)
     if (user.lastDonationDate) {
+      const lastDonationDate = new Date(user.lastDonationDate);
+      const today = new Date();
+
+      // If lastDonationDate is in the future, it means they're registered for a future event
+      if (lastDonationDate > today) {
+        return res.status(200).json({
+          eligible: false,
+          message: `You are already registered for an event. Cannot register for multiple events at the same time.`,
+        });
+      }
+
       const daysSinceLastDonation = Math.floor(
-        (new Date() - new Date(user.lastDonationDate)) / (1000 * 60 * 60 * 24)
+        (today - lastDonationDate) / (1000 * 60 * 60 * 24)
       );
 
       if (daysSinceLastDonation < 10) {
         const daysRemaining = 10 - daysSinceLastDonation;
         return res.status(200).json({
           eligible: false,
-          message: `You must wait ${daysRemaining} more day(s) before donating again. Last donation: ${new Date(
-            user.lastDonationDate
-          ).toLocaleDateString()}`,
+          message: `You must wait ${daysRemaining} more day(s) before donating again. Last donation: ${lastDonationDate.toLocaleDateString()}`,
         });
       }
     }
@@ -871,8 +880,8 @@ exports.registerForEvent = async (req, res) => {
       registeredAt: new Date(),
     });
 
-    // Set lastDonationDate to the event date (when they will donate)
-    user.lastDonationDate = event.eventDate;
+    // Set lastDonationDate to the event end date (when they will donate)
+    user.lastDonationDate = event.endDate || event.eventDate;
     user.totalDonations = (user.totalDonations || 0) + 1;
 
     await user.save();
