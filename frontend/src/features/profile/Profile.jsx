@@ -199,14 +199,14 @@ function Profile() {
                       <div className="info-label">
                         <FaCalendarAlt className="info-icon" /> Events Organized
                       </div>
-                      <div className="info-value">{profileData?.eventsOrganized || '24'}</div>
+                      <div className="info-value">{profileData?.eventsOrganized || 0}</div>
                     </div>
 
                     <div className="info-item">
                       <div className="info-label">
                         <FaUsers className="info-icon" /> Total Attendees
                       </div>
-                      <div className="info-value">{profileData?.totalAttendees || '1942'}</div>
+                      <div className="info-value">{profileData?.totalAttendees || 0}</div>
                     </div>
                   </>
                 )}

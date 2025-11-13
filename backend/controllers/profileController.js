@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Event = require("../models/Event");
 const cloudinary = require("../config/cloudinary");
 
 // @desc    Get user profile
@@ -12,7 +13,27 @@ const getProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json(user);
+    // If user is an organizer, calculate their stats
+    let userProfile = user.toObject();
+
+    if (user.role === "organizer") {
+      // Count events organized by this user
+      const eventsOrganized = await Event.countDocuments({
+        organizer: user._id,
+      });
+
+      // Calculate total attendees across all their events
+      const events = await Event.find({ organizer: user._id });
+      const totalAttendees = events.reduce(
+        (sum, event) => sum + (event.currentAttendees || 0),
+        0
+      );
+
+      userProfile.eventsOrganized = eventsOrganized;
+      userProfile.totalAttendees = totalAttendees;
+    }
+
+    res.json(userProfile);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error", error: error.message });
