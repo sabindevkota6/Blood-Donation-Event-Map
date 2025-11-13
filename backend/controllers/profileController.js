@@ -23,14 +23,123 @@ const getProfile = async (req, res) => {
       });
 
       // Calculate total attendees across all their events
-      const events = await Event.find({ organizer: user._id });
-      const totalAttendees = events.reduce(
-        (sum, event) => sum + (event.currentAttendees || 0),
-        0
+      const events = await Event.find({ organizer: user._id })
+        .sort({ eventDate: -1 })
+        .limit(10);
+      const totalAttendees = await Event.find({ organizer: user._id }).then(
+        (allEvents) =>
+          allEvents.reduce(
+            (sum, event) => sum + (event.currentAttendees || 0),
+            0
+          )
       );
 
       userProfile.eventsOrganized = eventsOrganized;
       userProfile.totalAttendees = totalAttendees;
+
+      // Generate achievements for organizers
+      const achievements = [];
+
+      if (eventsOrganized >= 1) {
+        const firstEvent = await Event.findOne({ organizer: user._id }).sort({
+          createdAt: 1,
+        });
+        achievements.push({
+          title: "First Event",
+          description: "Successfully organized first blood donation event",
+          date: firstEvent?.createdAt,
+        });
+      }
+
+      if (totalAttendees >= 100) {
+        achievements.push({
+          title: "100 Donors Milestone",
+          description: "Reached 100 total donors across all events",
+          date: null,
+        });
+      }
+
+      if (eventsOrganized >= 10) {
+        achievements.push({
+          title: "10 Events Organized",
+          description: "Organized 10+ successful blood donation events",
+          date: null,
+        });
+      }
+
+      if (eventsOrganized >= 50) {
+        achievements.push({
+          title: "50 Events Organized",
+          description:
+            "Reached the milestone of organizing 50 blood donation events",
+          date: null,
+        });
+      }
+
+      userProfile.achievements = achievements;
+      userProfile.eventHistory = events.map((event) => ({
+        _id: event._id,
+        name: event.eventTitle,
+        attendees: event.currentAttendees || 0,
+        date: event.eventDate,
+      }));
+    }
+
+    if (user.role === "donor") {
+      // Fetch registered events for donors
+      const registeredEventIds =
+        user.registeredEvents?.map((re) => re.eventId) || [];
+      const donationHistory = await Event.find({
+        _id: { $in: registeredEventIds },
+      })
+        .sort({ eventDate: -1 })
+        .limit(10)
+        .select("eventTitle currentAttendees eventDate");
+
+      // Generate achievements for donors based on total donations
+      const achievements = [];
+      const totalDonations = user.totalDonations || 0;
+
+      if (totalDonations >= 1) {
+        const firstDonation = user.registeredEvents?.[0];
+        achievements.push({
+          title: "First Donation",
+          description: "Completed your first blood donation",
+          date: firstDonation?.registeredAt,
+        });
+      }
+
+      if (totalDonations >= 5) {
+        achievements.push({
+          title: "5 Donations",
+          description: "Saved lives with 5 blood donations",
+          date: null,
+        });
+      }
+
+      if (totalDonations >= 10) {
+        achievements.push({
+          title: "10 Donations",
+          description: "Reached 10 donations milestone",
+          date: null,
+        });
+      }
+
+      if (totalDonations >= 25) {
+        achievements.push({
+          title: "25 Donations",
+          description: "Heroic milestone of 25 blood donations",
+          date: null,
+        });
+      }
+
+      userProfile.achievements = achievements;
+      userProfile.donationHistory = donationHistory.map((event) => ({
+        _id: event._id,
+        name: event.eventTitle,
+        attendees: event.currentAttendees || 0,
+        date: event.eventDate,
+      }));
     }
 
     res.json(userProfile);

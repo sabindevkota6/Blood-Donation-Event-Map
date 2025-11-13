@@ -257,37 +257,25 @@ function Profile() {
           
           {/* Achievement Cards Grid */}
           <div className="achievements-grid">
-            <div className="achievement-card">
-              <div className="achievement-content">
-                <div className="achievement-title">First Event</div>
-                <div className="achievement-description">Successfully organized first blood donation event</div>
+            {profileData?.achievements && profileData.achievements.length > 0 ? (
+              profileData.achievements.map((achievement, index) => (
+                <div key={index} className="achievement-card">
+                  <div className="achievement-content">
+                    <div className="achievement-title">{achievement.title}</div>
+                    <div className="achievement-description">{achievement.description}</div>
+                  </div>
+                  <div className="achievement-date">
+                    {achievement.date ? new Date(achievement.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Achieved'}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="no-data-message">
+                {user.role === 'donor' 
+                  ? 'No achievements yet. Register for an event to start your journey!' 
+                  : 'No achievements yet. Create your first event to get started!'}
               </div>
-              <div className="achievement-date">Mar 2022</div>
-            </div>
-
-            <div className="achievement-card">
-              <div className="achievement-content">
-                <div className="achievement-title">100 Donors Milestone</div>
-                <div className="achievement-description">Reached 100 total donors across all events</div>
-              </div>
-              <div className="achievement-date">Aug 2022</div>
-            </div>
-
-            <div className="achievement-card">
-              <div className="achievement-content">
-                <div className="achievement-title">10 Events Organized</div>
-                <div className="achievement-description">Organized 10+ successful blood donation events</div>
-              </div>
-              <div className="achievement-date">May 2023</div>
-            </div>
-
-            <div className="achievement-card">
-              <div className="achievement-content">
-                <div className="achievement-title">50 Events Organized</div>
-                <div className="achievement-description">Reached the milestone of organizing 50 blood donation events</div>
-              </div>
-              <div className="achievement-date">Sep 2025</div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -299,49 +287,29 @@ function Profile() {
           
           {/* Event List */}
           <div className="event-list">
-            <div className="event-item">
-              <div className="event-bar"></div>
-              <div className="event-content">
-                <div className="event-name">Winter Blood Drive 2025</div>
-                <div className="event-details">
-                  <FaUsers className="detail-icon" /> 142 attendees
+            {(user.role === 'donor' ? profileData?.donationHistory : profileData?.eventHistory) && 
+             (user.role === 'donor' ? profileData?.donationHistory : profileData?.eventHistory).length > 0 ? (
+              (user.role === 'donor' ? profileData?.donationHistory : profileData?.eventHistory).map((event) => (
+                <div key={event._id} className="event-item">
+                  <div className="event-bar"></div>
+                  <div className="event-content">
+                    <div className="event-name">{event.name}</div>
+                    <div className="event-details">
+                      <FaUsers className="detail-icon" /> {event.attendees} attendees
+                    </div>
+                  </div>
+                  <div className="event-date">
+                    {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="no-data-message">
+                {user.role === 'donor' 
+                  ? 'No donation history yet. Register for an event to begin!' 
+                  : 'No event history yet. Create your first event!'}
               </div>
-              <div className="event-date">Oct 15, 2025</div>
-            </div>
-
-            <div className="event-item">
-              <div className="event-bar"></div>
-              <div className="event-content">
-                <div className="event-name">Community Blood Drive 2025</div>
-                <div className="event-details">
-                  <FaUsers className="detail-icon" /> 87 attendees
-                </div>
-              </div>
-              <div className="event-date">Aug 15, 2025</div>
-            </div>
-
-            <div className="event-item">
-              <div className="event-bar"></div>
-              <div className="event-content">
-                <div className="event-name">Summer Donation Event</div>
-                <div className="event-details">
-                  <FaUsers className="detail-icon" /> 124 attendees
-                </div>
-              </div>
-              <div className="event-date">Jun 10, 2025</div>
-            </div>
-
-            <div className="event-item">
-              <div className="event-bar"></div>
-              <div className="event-content">
-                <div className="event-name">Spring Health Fair</div>
-                <div className="event-details">
-                  <FaUsers className="detail-icon" /> 65 attendees
-                </div>
-              </div>
-              <div className="event-date">Apr 20, 2025</div>
-            </div>
+            )}
           </div>
         </div>
       </div>
