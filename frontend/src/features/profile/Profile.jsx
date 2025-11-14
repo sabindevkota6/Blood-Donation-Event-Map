@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaEdit, FaPhone, FaMapMarkerAlt, FaEnvelope, FaTint, FaUser, FaCalendarAlt, FaAward, FaUsers } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit, FaPhone, FaMapMarkerAlt, FaEnvelope, FaTint, FaUser, FaCalendarAlt, FaAward, FaUsers, FaBuilding, FaCalendarCheck } from 'react-icons/fa';
 import { useAuth } from '../../shared/context/AuthContext';
 import profileService from '../../shared/services/profileService';
 import Avatar from '../../shared/components/Avatar';
@@ -176,7 +176,7 @@ function Profile() {
                   <>
                     <div className="info-item">
                       <div className="info-label">
-                        <FaAward className="info-icon" /> Organization
+                        <FaBuilding className="info-icon" /> Organization
                       </div>
                       <div className="info-value">{profileData?.organization || 'Not provided'}</div>
                     </div>
@@ -197,7 +197,7 @@ function Profile() {
 
                     <div className="info-item">
                       <div className="info-label">
-                        <FaCalendarAlt className="info-icon" /> Events Organized
+                        <FaCalendarCheck className="info-icon" /> Events Organized
                       </div>
                       <div className="info-value">{profileData?.eventsOrganized || 0}</div>
                     </div>
@@ -282,7 +282,7 @@ function Profile() {
         {/* Event History */}
         <div className="info-card">
           <h2 className="section-title">
-            {user.role === 'donor' ? 'Donation History' : 'Event History'}
+            {user.role === 'donor' ? 'Recent Donation History' : 'Recent Event History'}
           </h2>
           
           {/* Event List */}
@@ -290,15 +290,17 @@ function Profile() {
             {(user.role === 'donor' ? profileData?.donationHistory : profileData?.eventHistory) && 
              (user.role === 'donor' ? profileData?.donationHistory : profileData?.eventHistory).length > 0 ? (
               (user.role === 'donor' ? profileData?.donationHistory : profileData?.eventHistory).map((event) => (
-                <div key={event._id} className="event-item">
-                  <div className="event-bar"></div>
-                  <div className="event-content">
-                    <div className="event-name">{event.name}</div>
-                    <div className="event-details">
-                      <FaUsers className="detail-icon" /> {event.attendees} attendees
-                    </div>
+                <div key={event._id} className="profile-event-item">
+                  <div className="profile-event-bar"></div>
+                  <div className="profile-event-content">
+                    <div className="profile-event-name">{event.name}</div>
+                    {user.role === 'organizer' && (
+                      <div className="profile-event-details">
+                        <FaUsers className="profile-detail-icon" /> {event.attendees} attendees
+                      </div>
+                    )}
                   </div>
-                  <div className="event-date">
+                  <div className="profile-event-date">
                     {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </div>
                 </div>

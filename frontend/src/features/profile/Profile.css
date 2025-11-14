@@ -162,7 +162,7 @@
 /* Achievements Grid */
 .achievements-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 16px;
 }
 
@@ -175,6 +175,11 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
+}
+
+/* When there's only one card in the grid */
+.achievements-grid:has(.achievement-card:only-child) {
+  grid-template-columns: 1fr;
 }
 
 .achievement-content {
@@ -206,57 +211,65 @@
 .event-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.event-item {
-  background-color: #fef5f5;
-  border: 1px solid #fde5e5;
-  border-radius: 8px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
   gap: 16px;
 }
 
-.event-bar {
-  width: 4px;
-  height: 40px;
-  background-color: #dc3545;
-  border-radius: 2px;
-  flex-shrink: 0;
+.profile-event-item {
+  background-color: #fef5f5;
+  border: 1px solid #fde5e5;
+  border-left: 4px solid #dc3545;
+  border-radius: 4px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  transition: box-shadow 0.2s ease;
 }
 
-.event-content {
+.profile-event-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.profile-event-bar {
+  display: none;
+}
+
+.profile-event-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.event-name {
-  color: #333;
-  font-size: 14px;
+.profile-event-name {
+  color: #1a1a1a;
+  font-size: 15px;
   font-weight: 600;
-  margin-bottom: 6px;
+  line-height: 1.4;
+  margin: 0;
 }
 
-.event-details {
+.profile-event-details {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #666;
-  font-size: 12px;
-}
-
-.detail-icon {
-  color: #dc3545;
+  color: #666666;
   font-size: 13px;
 }
 
-.event-date {
+.profile-detail-icon {
   color: #dc3545;
-  font-size: 12px;
+  font-size: 14px;
+}
+
+.profile-event-date {
+  color: #dc3545;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
+  align-self: flex-start;
 }
 
 /* No Data Message */
