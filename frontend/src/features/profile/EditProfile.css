@@ -105,6 +105,14 @@
   border-color: #dc3545;
 }
 
+.form-group input.disabled-input,
+.form-group input:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+  border-color: #e0e0e0;
+}
+
 .form-group textarea {
   resize: vertical;
   min-height: 100px;

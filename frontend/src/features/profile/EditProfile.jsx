@@ -32,6 +32,12 @@ function EditProfile() {
     fetchProfile();
   }, []);
 
+  useEffect(() => {
+    if (error) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [error]);
+
   const fetchProfile = async () => {
     try {
       setLoading(true);
@@ -191,8 +197,13 @@ function EditProfile() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  disabled
+                  className="disabled-input"
                   required
                 />
+                <small className="help-text" style={{ color: '#999', marginTop: '4px', display: 'block' }}>
+                  Email cannot be changed
+                </small>
               </div>
             </div>
           </div>

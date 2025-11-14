@@ -184,9 +184,29 @@ const updateProfile = async (req, res) => {
         .json({ message: "Only organizers can have organization details" });
     }
 
+    // Check if phone number is already taken by another user
+    if (phone && phone !== user.phone) {
+      const phoneExists = await User.findOne({
+        phone: phone,
+        _id: { $ne: user._id },
+      });
+
+      if (phoneExists) {
+        return res.status(400).json({
+          message: "This phone number is already registered to another user",
+        });
+      }
+    }
+
+    // Don't allow email changes
+    if (email && email !== user.email) {
+      return res.status(400).json({
+        message: "Email address cannot be changed",
+      });
+    }
+
     // Update allowed fields
     if (fullName) user.fullName = fullName;
-    if (email) user.email = email;
     if (bloodType) user.bloodType = bloodType;
     if (phone) user.phone = phone;
     if (organization) user.organization = organization;

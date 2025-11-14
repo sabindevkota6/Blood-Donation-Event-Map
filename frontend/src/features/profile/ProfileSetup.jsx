@@ -46,7 +46,9 @@ function ProfileSetup() {
     });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    setError('');
+    
     if (currentStep === 1) {
       if (user.role === 'donor' && !formData.bloodType) {
         setError('Please select your blood type');
@@ -62,6 +64,20 @@ function ProfileSetup() {
           return;
         }
       }
+      
+      // Validate phone number if provided
+      if (formData.phone && formData.phone.trim()) {
+        try {
+          setLoading(true);
+          // Try to update with just the phone to check if it's available
+          await profileService.updateProfile({ phone: formData.phone }, user.token);
+          setLoading(false);
+        } catch (err) {
+          setLoading(false);
+          setError(err.response?.data?.message || 'Phone number validation failed');
+          return;
+        }
+      }
     }
     
     if (currentStep === 2) {
@@ -71,7 +87,6 @@ function ProfileSetup() {
       }
     }
 
-    setError('');
     setCurrentStep(currentStep + 1);
   };
 
@@ -109,10 +124,13 @@ function ProfileSetup() {
         profileData.memberSince = formData.memberSince;
       }
 
+      // Use completeProfile which won't re-check phone since it was already validated
       await profileService.completeProfile(profileData, user.token);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to complete profile. Please try again.');
+      // If there's an error here, it's likely not about phone validation
+      const errorMessage = err.response?.data?.message || 'Failed to complete profile. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
