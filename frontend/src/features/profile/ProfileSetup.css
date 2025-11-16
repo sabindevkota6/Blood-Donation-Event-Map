@@ -413,8 +413,8 @@
 }
 
 .blood-badge {
-  background: #dc3545;
-  color: white;
+  background: transparent;
+  color: #333;
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 14px;
