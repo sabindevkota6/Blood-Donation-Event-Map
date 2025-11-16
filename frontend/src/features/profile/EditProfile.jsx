@@ -14,6 +14,7 @@ function EditProfile() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -72,11 +73,67 @@ function EditProfile() {
     }));
   }, []);
 
+  // Validation functions
+  const validatePhone = (phone) => {
+    if (!phone) return 'Phone number is required';
+    if (!/^[0-9]{10}$/.test(phone)) {
+      return 'Phone number must be exactly 10 digits';
+    }
+    return '';
+  };
+
+  const validateName = (name) => {
+    if (!name || name.trim().length === 0) {
+      return 'Name is required';
+    }
+    if (name.trim().length > 50) {
+      return 'Name must not exceed 50 characters';
+    }
+    if (!/^[a-zA-Z\s]+$/.test(name)) {
+      return 'Name can only contain letters and spaces';
+    }
+    const words = name.trim().split(/\s+/);
+    if (words.length < 2) {
+      return 'Please enter at least two words (first and last name)';
+    }
+    return '';
+  };
+
+  const validateOrganization = (org) => {
+    if (!org || org.trim().length === 0) {
+      return 'Organization name is required';
+    }
+    if (org.trim().length > 100) {
+      return 'Organization name must not exceed 100 characters';
+    }
+    const words = org.trim().split(/\s+/);
+    if (words.length < 2) {
+      return 'Please enter at least two words for organization name';
+    }
+    return '';
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+
+    // Validate on change
+    let error = '';
+    if (name === 'phone') {
+      error = validatePhone(value);
+    } else if (name === 'fullName') {
+      error = validateName(value);
+    } else if (name === 'organization') {
+      error = validateOrganization(value);
+    }
+
+    setValidationErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
   };
 
   const handleBloodTypeSelect = (type) => {
@@ -91,25 +148,34 @@ function EditProfile() {
     setError('');
     setSuccess('');
 
-    if (!formData.fullName || !formData.email) {
-      setError('Name and email are required');
-      return;
+    // Validate all fields
+    const errors = {};
+    
+    const nameError = validateName(formData.fullName);
+    if (nameError) errors.fullName = nameError;
+
+    const phoneError = validatePhone(formData.phone);
+    if (phoneError) errors.phone = phoneError;
+
+    if (user.role === 'organizer') {
+      const orgError = validateOrganization(formData.organization);
+      if (orgError) errors.organization = orgError;
+
+      if (!formData.memberSince) {
+        errors.memberSince = 'Member since date is required for organizers';
+      }
     }
 
     if (user.role === 'donor' && !formData.bloodType) {
-      setError('Blood type is required for donors');
-      return;
+      errors.bloodType = 'Blood type is required for donors';
     }
 
-    if (user.role === 'organizer') {
-      if (!formData.organization.trim()) {
-        setError('Organization name is required for organizers');
-        return;
-      }
-      if (!formData.memberSince) {
-        setError('Member since date is required for organizers');
-        return;
-      }
+    // If there are validation errors, set them and return
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      setError('Please fix the validation errors');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
 
     try {
@@ -189,6 +255,9 @@ function EditProfile() {
                   onChange={handleChange}
                   required
                 />
+                {validationErrors.fullName && (
+                  <span className="error-text">{validationErrors.fullName}</span>
+                )}
               </div>
               <div className="form-group">
                 <label>Email*</label>
@@ -225,6 +294,9 @@ function EditProfile() {
                   </button>
                 ))}
               </div>
+              {validationErrors.bloodType && (
+                <span className="error-text">{validationErrors.bloodType}</span>
+              )}
             </div>
           )}
 
@@ -242,6 +314,9 @@ function EditProfile() {
                     placeholder="Enter organization name"
                     required
                   />
+                  {validationErrors.organization && (
+                    <span className="error-text">{validationErrors.organization}</span>
+                  )}
                 </div>
                 <div className="form-group">
                   <label>Member Since*</label>
@@ -253,6 +328,9 @@ function EditProfile() {
                     max={new Date().toISOString().slice(0, 7)}
                     required
                   />
+                  {validationErrors.memberSince && (
+                    <span className="error-text">{validationErrors.memberSince}</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -267,8 +345,11 @@ function EditProfile() {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="+1 (555) 123-4567"
+                placeholder="Enter your 10 digit phone number"
               />
+              {validationErrors.phone && (
+                <span className="error-text">{validationErrors.phone}</span>
+              )}
             </div>
           </div>
 

@@ -700,7 +700,10 @@ function EditEvent() {
                   readOnly
                   {...register('contactPhone', { 
                     required: 'Contact phone is required',
-                    minLength: { value: 10, message: 'Please enter a valid phone number' },
+                    pattern: {
+                      value: /^[0-9]{10}$/,
+                      message: 'Phone number must be exactly 10 digits'
+                    },
                     validate: (value) => {
                       if (!profileData?.phone) return true;
                       return value.trim() === profileData.phone.trim() || 

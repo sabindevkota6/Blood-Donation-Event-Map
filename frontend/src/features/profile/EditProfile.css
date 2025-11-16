@@ -372,3 +372,11 @@ ile-card {
     padding: 24px;
   }
 }
+
+/* Error Text Styling */
+.error-text {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}

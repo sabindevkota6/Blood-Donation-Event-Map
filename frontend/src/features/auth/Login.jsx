@@ -1,39 +1,33 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import { useAuth } from '../../shared/context/AuthContext';
 import './Login.css';
 
 function Login() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
   const [localError, setLocalError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
     setLocalError('');
-
-    if (!formData.email || !formData.password) {
-      setLocalError('Please fill in all fields');
-      return;
-    }
 
     try {
       setIsLoading(true);
-      await login(formData.email, formData.password);
-      // Navigate to dashboard or home page after successful login
+      await login(data.email, data.password);
       navigate('/dashboard');
     } catch (error) {
       setLocalError(error.message);
@@ -50,18 +44,22 @@ function Login() {
 
         {localError && <div className="error-message">{localError}</div>}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
               type="email"
               id="email"
-              name="email"
               placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleChange}
-              required
+              {...register('email', {
+                required: 'Email is required',
+                pattern: {
+                  value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                  message: 'Please enter a valid email address',
+                },
+              })}
             />
+            {errors.email && <span className="error-text">{errors.email.message}</span>}
           </div>
 
           <div className="form-group">
@@ -69,12 +67,12 @@ function Login() {
             <input
               type="password"
               id="password"
-              name="password"
               placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
-              required
+              {...register('password', {
+                required: 'Password is required',
+              })}
             />
+            {errors.password && <span className="error-text">{errors.password.message}</span>}
           </div>
 
           <button type="submit" className="btn-login" disabled={isLoading}>

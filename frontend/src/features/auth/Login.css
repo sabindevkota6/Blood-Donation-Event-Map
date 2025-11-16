@@ -42,6 +42,13 @@
   text-align: center;
 }
 
+.error-text {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
 .form-group {
   margin-bottom: 20px;
 }

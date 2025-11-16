@@ -20,8 +20,33 @@ function ProfileSetup() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
 
   const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+  // Validation functions
+  const validatePhone = (phone) => {
+    if (!phone) return null;
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(phone.replace(/[\s()-]/g, ''))) {
+      return 'Phone number must be 10 digits';
+    }
+    return null;
+  };
+
+  const validateName = (name) => {
+    if (!name || !name.trim()) {
+      return 'This field is required';
+    }
+    if (!/^[a-zA-Z\s]+$/.test(name)) {
+      return 'Can only contain letters and spaces';
+    }
+    const words = name.trim().split(/\s+/);
+    if (words.length < 2) {
+      return 'Please enter at least two words (first and last name)';
+    }
+    return null;
+  };
 
   // Handle location changes from the map component
   const handleLocationChange = useCallback((position, address) => {
@@ -33,10 +58,38 @@ function ProfileSetup() {
   }, []);
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+    
+    // Clear validation error for this field
+    if (validationErrors[name]) {
+      setValidationErrors({
+        ...validationErrors,
+        [name]: null,
+      });
+    }
+    
+    // Validate on change
+    if (name === 'phone') {
+      const phoneError = validatePhone(value);
+      if (phoneError) {
+        setValidationErrors({
+          ...validationErrors,
+          phone: phoneError,
+        });
+      }
+    } else if (name === 'organization') {
+      const orgError = validateName(value);
+      if (orgError) {
+        setValidationErrors({
+          ...validationErrors,
+          organization: orgError,
+        });
+      }
+    }
   };
 
   const handleBloodTypeSelect = (type) => {
@@ -50,13 +103,12 @@ function ProfileSetup() {
     setError('');
     
     if (currentStep === 1) {
-      if (user.role === 'donor' && !formData.bloodType) {
-        setError('Please select your blood type');
-        return;
-      }
+      // Validate organization name for organizers
       if (user.role === 'organizer') {
-        if (!formData.organization.trim()) {
-          setError('Please enter your organization name');
+        const orgError = validateName(formData.organization);
+        if (orgError) {
+          setValidationErrors({ ...validationErrors, organization: orgError });
+          setError('Please fix the validation errors');
           return;
         }
         if (!formData.memberSince) {
@@ -65,8 +117,21 @@ function ProfileSetup() {
         }
       }
       
+      // Validate blood type for donors
+      if (user.role === 'donor' && !formData.bloodType) {
+        setError('Please select your blood type');
+        return;
+      }
+      
       // Validate phone number if provided
       if (formData.phone && formData.phone.trim()) {
+        const phoneError = validatePhone(formData.phone);
+        if (phoneError) {
+          setValidationErrors({ ...validationErrors, phone: phoneError });
+          setError('Please fix the validation errors');
+          return;
+        }
+        
         try {
           setLoading(true);
           // Try to update with just the phone to check if it's available
@@ -175,6 +240,9 @@ function ProfileSetup() {
                     placeholder="Enter your organization name"
                     required
                   />
+                  {validationErrors.organization && (
+                    <span className="error-text">{validationErrors.organization}</span>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -199,8 +267,11 @@ function ProfileSetup() {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="Enter your phone number"
+                placeholder="Enter 10-digit phone number"
               />
+              {validationErrors.phone && (
+                <span className="error-text">{validationErrors.phone}</span>
+              )}
             </div>
           </div>
         );
