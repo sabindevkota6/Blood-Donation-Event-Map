@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../shared/context/AuthContext';
 import './Login.css';
@@ -7,9 +7,17 @@ import './Login.css';
 function Login() {
   const [localError, setLocalError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [searchParams] = useSearchParams();
 
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if redirected due to session expiration
+    if (searchParams.get('session') === 'expired') {
+      setLocalError('Your session has expired. Please log in again.');
+    }
+  }, [searchParams]);
 
   const {
     register,

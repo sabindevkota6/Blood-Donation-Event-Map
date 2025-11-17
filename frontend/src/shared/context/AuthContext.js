@@ -17,11 +17,24 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const user = authService.getCurrentUser();
+    // Check if user exists and token is still valid
+    const user = authService.getValidUser();
     if (user) {
       setUser(user);
     }
     setLoading(false);
+
+    // Set up periodic token expiration check (every minute)
+    const interval = setInterval(() => {
+      if (authService.isTokenExpired()) {
+        authService.logout();
+        setUser(null);
+        // Optionally redirect to login
+        window.location.href = "/login?session=expired";
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
   }, []);
 
   const login = async (email, password) => {
