@@ -1,6 +1,9 @@
 const User = require("../models/User");
 const Event = require("../models/Event");
-const cloudinary = require("../config/cloudinary");
+const {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} = require("../config/cloudinary");
 
 // @desc    Get user profile
 // @route   GET /api/profile
@@ -222,23 +225,17 @@ const updateProfile = async (req, res) => {
     }
 
     // Check if profile is complete (for donors)
+    const hasValidLocation =
+      user.location?.address &&
+      typeof user.location?.coordinates?.lat === "number" &&
+      typeof user.location?.coordinates?.lng === "number";
+
     if (user.role === "donor") {
-      user.isProfileComplete = !!(
-        user.bloodType &&
-        user.phone &&
-        user.location?.address &&
-        user.location?.coordinates?.lat &&
-        user.location?.coordinates?.lng
-      );
+      user.isProfileComplete = Boolean(user.bloodType && hasValidLocation);
     } else if (user.role === "organizer") {
       // For organizers, check organization-specific fields
-      user.isProfileComplete = !!(
-        user.organization &&
-        user.memberSince &&
-        user.phone &&
-        user.location?.address &&
-        user.location?.coordinates?.lat &&
-        user.location?.coordinates?.lng
+      user.isProfileComplete = Boolean(
+        user.organization && user.memberSince && hasValidLocation
       );
     }
 
@@ -268,16 +265,14 @@ const uploadProfilePicture = async (req, res) => {
 
     // Delete old image from Cloudinary if exists
     if (user.profilePicture?.publicId) {
-      await cloudinary.uploader.destroy(user.profilePicture.publicId);
+      await deleteFromCloudinary(user.profilePicture.publicId);
     }
 
-    // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "blood-donation/profiles",
-      width: 500,
-      height: 500,
-      crop: "fill",
-    });
+    // Upload to Cloudinary using buffer
+    const result = await uploadToCloudinary(
+      req.file.buffer,
+      "blood-donation-app/profiles"
+    );
 
     // Update user profile picture
     user.profilePicture = {
@@ -313,7 +308,7 @@ const deleteProfilePicture = async (req, res) => {
     }
 
     // Delete from Cloudinary
-    await cloudinary.uploader.destroy(user.profilePicture.publicId);
+    await deleteFromCloudinary(user.profilePicture.publicId);
 
     // Remove from user document
     user.profilePicture = undefined;

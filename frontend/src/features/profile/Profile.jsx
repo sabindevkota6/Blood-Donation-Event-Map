@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaEdit, FaPhone, FaMapMarkerAlt, FaEnvelope, FaTint, FaUser, FaCalendarAlt, FaAward, FaUsers, FaBuilding, FaCalendarCheck } from 'react-icons/fa';
 import { useAuth } from '../../shared/context/AuthContext';
@@ -11,14 +11,10 @@ function Profile() {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
       const data = await profileService.getProfile(user.token);
@@ -29,12 +25,11 @@ function Profile() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.token]);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const formatDate = (date) => {
     if (!date) return 'Not recorded';

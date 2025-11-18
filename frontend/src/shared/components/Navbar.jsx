@@ -5,8 +5,10 @@ import Avatar from './Avatar';
 import './Navbar.css';
 
 function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const navigate = useNavigate();
+  const displayName = profile?.fullName || user?.fullName || user?.name;
+  const avatarSrc = profile?.profilePicture?.url;
 
   const handleHomeClick = () => {
     navigate('/dashboard');
@@ -28,11 +30,11 @@ function Navbar() {
         <div className="navbar-user">
           <div className="navbar-profile" onClick={handleProfileClick}>
             <Avatar 
-              src={user?.profilePicture?.url} 
-              name={user?.fullName || user?.name}
+              src={avatarSrc} 
+              name={displayName}
               size="small" 
             />
-            <span className="navbar-username">{user?.fullName || user?.name}</span>
+            <span className="navbar-username">{displayName}</span>
           </div>
           <button className="navbar-logout" onClick={handleLogout}>
             Logout

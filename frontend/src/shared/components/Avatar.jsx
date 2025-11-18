@@ -10,9 +10,15 @@ function Avatar({ src, name, size = 'medium' }) {
   };
 
   const sizeClass = `avatar-${size}`;
+  const isCustomSize = size.includes('px');
+  const customStyle = isCustomSize ? {
+    width: size,
+    height: size,
+    fontSize: `${parseInt(size) * 0.4}px`
+  } : {};
 
   return (
-    <div className={`avatar ${sizeClass}`}>
+    <div className={`avatar ${!isCustomSize ? sizeClass : ''}`} style={customStyle}>
       {src ? (
         <img src={src} alt={name} className="avatar-image" />
       ) : (

@@ -47,6 +47,10 @@
   background-color: #fef5f5;
 }
 
+.navbar-profile .avatar {
+  border: 2px solid #dc3545;
+}
+
 .navbar-username {
   color: #333;
   font-size: 15px;

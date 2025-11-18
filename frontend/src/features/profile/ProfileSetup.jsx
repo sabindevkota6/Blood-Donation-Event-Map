@@ -1,13 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../shared/context/AuthContext';
 import profileService from '../../shared/services/profileService';
 import LocationMap from '../../shared/components/LocationMap';
+import Avatar from '../../shared/components/Avatar';
 import './ProfileSetup.css';
 
 function ProfileSetup() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     bloodType: '',
@@ -20,9 +21,47 @@ function ProfileSetup() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [pictureUploading, setPictureUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+  useEffect(() => {
+    let ignore = false;
+    const loadProfile = async () => {
+      try {
+        const data = await profileService.getProfile(user.token);
+        if (!ignore && data?.profilePicture) {
+          setProfilePicture(data.profilePicture);
+        }
+      } catch (err) {
+        console.error('Failed to load profile info', err);
+      }
+    };
+    loadProfile();
+    return () => {
+      ignore = true;
+    };
+  }, [user.token]);
+
+  useEffect(() => {
+    if (error || successMessage) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [error, successMessage]);
+
+  const showErrorMessage = (message) => {
+    setError(message);
+    setSuccessMessage('');
+  };
+
+  const showSuccessMessage = (message) => {
+    setSuccessMessage(message);
+    setError('');
+  };
 
   // Validation functions
   const validatePhone = (phone) => {
@@ -101,6 +140,10 @@ function ProfileSetup() {
 
   const handleNext = async () => {
     setError('');
+    if (pictureUploading) {
+      showErrorMessage('Please wait for your profile picture upload to finish');
+      return;
+    }
     
     if (currentStep === 1) {
       // Validate organization name for organizers
@@ -108,18 +151,18 @@ function ProfileSetup() {
         const orgError = validateName(formData.organization);
         if (orgError) {
           setValidationErrors({ ...validationErrors, organization: orgError });
-          setError('Please fix the validation errors');
+          showErrorMessage('Please fix the validation errors');
           return;
         }
         if (!formData.memberSince) {
-          setError('Please select when you joined the organization');
+          showErrorMessage('Please select when you joined the organization');
           return;
         }
       }
       
       // Validate blood type for donors
       if (user.role === 'donor' && !formData.bloodType) {
-        setError('Please select your blood type');
+        showErrorMessage('Please select your blood type');
         return;
       }
       
@@ -128,7 +171,7 @@ function ProfileSetup() {
         const phoneError = validatePhone(formData.phone);
         if (phoneError) {
           setValidationErrors({ ...validationErrors, phone: phoneError });
-          setError('Please fix the validation errors');
+          showErrorMessage('Please fix the validation errors');
           return;
         }
         
@@ -139,7 +182,9 @@ function ProfileSetup() {
           setLoading(false);
         } catch (err) {
           setLoading(false);
-          setError(err.response?.data?.message || 'Phone number validation failed');
+          showErrorMessage(
+            err.response?.data?.message || 'Phone number validation failed'
+          );
           return;
         }
       }
@@ -147,7 +192,7 @@ function ProfileSetup() {
     
     if (currentStep === 2) {
       if (!formData.position) {
-        setError('Please select your location on the map');
+        showErrorMessage('Please select your location on the map');
         return;
       }
     }
@@ -161,8 +206,12 @@ function ProfileSetup() {
   };
 
   const handleSubmit = async () => {
+    if (pictureUploading) {
+      showErrorMessage('Please wait for your profile picture upload to finish');
+      return;
+    }
     if (!formData.position) {
-      setError('Please select your location');
+      showErrorMessage('Please select your location');
       return;
     }
 
@@ -195,10 +244,75 @@ function ProfileSetup() {
     } catch (err) {
       // If there's an error here, it's likely not about phone validation
       const errorMessage = err.response?.data?.message || 'Failed to complete profile. Please try again.';
-      setError(errorMessage);
+      showErrorMessage(errorMessage);
     } finally {
       setLoading(false);
     }
+  };
+
+  const validateImageFile = (file) => {
+    if (!file.type.startsWith('image/')) {
+      return 'Please select an image file';
+    }
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return 'Image size must be 5MB or less';
+    }
+    return null;
+  };
+
+  const handleProfilePictureChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const validationMessage = validateImageFile(file);
+    if (validationMessage) {
+      showErrorMessage(validationMessage);
+      event.target.value = '';
+      return;
+    }
+
+    const formPayload = new FormData();
+    formPayload.append('profilePicture', file);
+
+    try {
+      setPictureUploading(true);
+      const response = await profileService.uploadProfilePicture(
+        formPayload,
+        user.token
+      );
+      setProfilePicture(response.profilePicture);
+      await refreshProfile();
+      showSuccessMessage('Profile picture updated successfully');
+    } catch (err) {
+      showErrorMessage(
+        err.response?.data?.message || 'Failed to upload profile picture'
+      );
+    } finally {
+      setPictureUploading(false);
+      event.target.value = '';
+    }
+  };
+
+  const handleDeleteProfilePicture = async () => {
+    if (!profilePicture) return;
+    try {
+      setPictureUploading(true);
+      await profileService.deleteProfilePicture(user.token);
+      setProfilePicture(null);
+      await refreshProfile();
+      showSuccessMessage('Profile picture removed successfully');
+    } catch (err) {
+      showErrorMessage(
+        err.response?.data?.message || 'Failed to delete profile picture'
+      );
+    } finally {
+      setPictureUploading(false);
+    }
+  };
+
+  const triggerFilePicker = () => {
+    fileInputRef.current?.click();
   };
 
   const renderStepContent = () => {
@@ -207,6 +321,59 @@ function ProfileSetup() {
         return (
           <div className="step-content">
             <h2>Basic Information</h2>
+            <div className="profile-picture-upload">
+              <div className="profile-picture-preview">
+                {profilePicture?.url ? (
+                  <img
+                    src={profilePicture.url}
+                    alt="Profile"
+                    className="avatar-image"
+                  />
+                ) : (
+                  <Avatar
+                    src={null}
+                    name={user?.fullName}
+                    size="150px"
+                  />
+                )}
+                {pictureUploading && (
+                  <div className="upload-overlay">
+                    <div className="spinner"></div>
+                  </div>
+                )}
+              </div>
+              <div className="profile-picture-actions">
+                <button
+                  type="button"
+                  className="btn-upload-image"
+                  onClick={triggerFilePicker}
+                  disabled={pictureUploading}
+                >
+                  {profilePicture ? 'Change Photo' : 'Upload Photo'}
+                </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={handleProfilePictureChange}
+                />
+                {profilePicture && (
+                  <button
+                    type="button"
+                    className="btn-delete-image"
+                    onClick={handleDeleteProfilePicture}
+                    disabled={pictureUploading}
+                  >
+                    Remove Photo
+                  </button>
+                )}
+              </div>
+              <p className="step-subtitle">
+                Add a profile picture so organizers and donors can recognize you
+                easily. JPEG or PNG up to 5MB.
+              </p>
+            </div>
 
             {user.role === 'donor' && (
               <>
@@ -342,6 +509,12 @@ function ProfileSetup() {
                 </div>
               )}
               <div className="summary-item">
+                <span className="label">Profile Picture:</span>
+                <span className="value">
+                  {profilePicture ? 'Uploaded' : 'Not added'}
+                </span>
+              </div>
+              <div className="summary-item">
                 <span className="label">Location:</span>
                 <span className="value">{formData.address || 'Not set'}</span>
               </div>
@@ -378,6 +551,9 @@ function ProfileSetup() {
         </div>
 
         {error && <div className="error-message">{error}</div>}
+        {successMessage && (
+          <div className="success-message">{successMessage}</div>
+        )}
 
         <div className="setup-body">
           {renderStepContent()}
@@ -399,6 +575,7 @@ function ProfileSetup() {
               type="button"
               className="btn-next"
               onClick={handleNext}
+              disabled={pictureUploading}
             >
               Next
             </button>
@@ -407,7 +584,7 @@ function ProfileSetup() {
               type="button"
               className="btn-submit"
               onClick={handleSubmit}
-              disabled={loading}
+              disabled={loading || pictureUploading}
             >
               {loading ? 'Saving...' : 'Complete Setup'}
             </button>

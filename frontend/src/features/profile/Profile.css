@@ -98,6 +98,10 @@
   flex-shrink: 0;
 }
 
+.avatar-section .avatar {
+  border: 4px solid #dc3545;
+}
+
 .role-badge {
   padding: 8px 24px;
   background-color: #dc3545;

@@ -380,3 +380,112 @@ ile-card {
   margin-top: 4px;
   display: block;
 }
+
+/* Profile Picture Upload Styles */
+.profile-picture-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+}
+
+.profile-picture-preview {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid #dc3545;
+  background-color: #f8f9fa;
+}
+
+.profile-picture-preview .avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.profile-picture-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #dc3545;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.profile-picture-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-upload-image,
+.btn-delete-image {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-upload-image {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-upload-image:hover:not(:disabled) {
+  background-color: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.btn-delete-image {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-delete-image:hover:not(:disabled) {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+
+.btn-upload-image:disabled,
+.btn-delete-image:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

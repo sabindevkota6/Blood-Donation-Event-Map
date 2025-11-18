@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { FaArrowLeft, FaTimes } from 'react-icons/fa';
@@ -46,11 +46,6 @@ function CreateEvent() {
       contactPhone: ''
     }
   });
-
-  const bloodTypesNeeded = watch('bloodTypesNeeded');
-  const startDateValue = watch('startDate');
-  const endDateValue = watch('endDate');
-  const debounceTimerRef = useRef(null);
 
   // Fetch profile data on mount
   useEffect(() => {

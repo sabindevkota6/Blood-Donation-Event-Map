@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../shared/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { FaSearch, FaMapMarkerAlt, FaClock, FaUsers, FaCalendarAlt, FaHeart } from 'react-icons/fa';
+import { FaSearch, FaMapMarkerAlt, FaClock, FaUsers, FaCalendarAlt } from 'react-icons/fa';
 import ProfileCompleteModal from '../../shared/components/ProfileCompleteModal';
 import profileService from '../../shared/services/profileService';
 import eventService from '../../shared/services/eventService';
@@ -15,7 +15,6 @@ function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ activeEvents: 0, registeredDonors: 0 });
   const [events, setEvents] = useState([]);
@@ -27,16 +26,9 @@ function Dashboard() {
   const [eventsLoading, setEventsLoading] = useState(false);
   const [pageCounts, setPageCounts] = useState([]);
 
-  useEffect(() => {
-    checkProfileCompletion();
-    fetchDashboardStats();
-    fetchEvents();
-  }, []);
-
-  const checkProfileCompletion = async () => {
+  const checkProfileCompletion = useCallback(async () => {
     try {
       const data = await profileService.getProfile(user.token);
-      setProfileData(data);
       
       // Show modal for both donors and organizers with incomplete profiles
       if (!data.isProfileComplete) {
@@ -47,7 +39,7 @@ function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.token]);
 
   const fetchDashboardStats = async () => {
     try {
@@ -58,7 +50,7 @@ function Dashboard() {
     }
   };
 
-  const fetchEvents = async (page = 1, append = false) => {
+  const fetchEvents = useCallback(async (page = 1, append = false) => {
     try {
       setEventsLoading(true);
       const filters = {
@@ -101,7 +93,13 @@ function Dashboard() {
     } finally {
       setEventsLoading(false);
     }
-  };
+  }, [searchQuery, selectedBloodType, selectedDate]);
+
+  useEffect(() => {
+    checkProfileCompletion();
+    fetchDashboardStats();
+    fetchEvents();
+  }, [checkProfileCompletion, fetchEvents]);
 
   const handleSearch = (e) => {
     e.preventDefault();

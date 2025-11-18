@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import { useAuth } from '../../shared/context/AuthContext';
 import profileService from '../../shared/services/profileService';
 import Navbar from '../../shared/components/Navbar';
 import LocationMap from '../../shared/components/LocationMap';
+import Avatar from '../../shared/components/Avatar';
 import './EditProfile.css';
 
 function EditProfile() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -26,6 +27,9 @@ function EditProfile() {
     organization: '',
     memberSince: '',
   });
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [pictureUploading, setPictureUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -34,10 +38,20 @@ function EditProfile() {
   }, []);
 
   useEffect(() => {
-    if (error) {
+    if (error || success) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [error]);
+  }, [error, success]);
+
+  const showErrorMessage = (message) => {
+    setError(message);
+    setSuccess('');
+  };
+
+  const showSuccessMessage = (message) => {
+    setSuccess(message);
+    setError('');
+  };
 
   const fetchProfile = async () => {
     try {
@@ -56,12 +70,80 @@ function EditProfile() {
         organization: data.organization || '',
         memberSince: data.memberSince ? data.memberSince.slice(0, 7) : '',
       });
+      setProfilePicture(data.profilePicture || null);
     } catch (err) {
-      setError('Failed to load profile');
+      showErrorMessage('Failed to load profile');
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const validateImageFile = (file) => {
+    if (!file.type.startsWith('image/')) {
+      return 'Please select an image file';
+    }
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return 'Image size must be 5MB or less';
+    }
+    return null;
+  };
+
+  const handleProfilePictureChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const validationMessage = validateImageFile(file);
+    if (validationMessage) {
+      showErrorMessage(validationMessage);
+      event.target.value = '';
+      return;
+    }
+
+    const payload = new FormData();
+    payload.append('profilePicture', file);
+
+    try {
+      setPictureUploading(true);
+      const response = await profileService.uploadProfilePicture(
+        payload,
+        user.token
+      );
+      setProfilePicture(response.profilePicture);
+      await refreshProfile();
+      showSuccessMessage('Profile picture updated successfully');
+    } catch (uploadError) {
+      showErrorMessage(
+        uploadError.response?.data?.message ||
+          'Failed to upload profile picture'
+      );
+    } finally {
+      setPictureUploading(false);
+      event.target.value = '';
+    }
+  };
+
+  const handleDeleteProfilePicture = async () => {
+    if (!profilePicture) return;
+    try {
+      setPictureUploading(true);
+      await profileService.deleteProfilePicture(user.token);
+      setProfilePicture(null);
+      await refreshProfile();
+      showSuccessMessage('Profile picture removed successfully');
+    } catch (deleteError) {
+      showErrorMessage(
+        deleteError.response?.data?.message ||
+          'Failed to delete profile picture'
+      );
+    } finally {
+      setPictureUploading(false);
+    }
+  };
+
+  const triggerFilePicker = () => {
+    fileInputRef.current?.click();
   };
 
   // Handle location changes from the map component
@@ -75,10 +157,15 @@ function EditProfile() {
 
   // Validation functions
   const validatePhone = (phone) => {
-    if (!phone) return 'Phone number is required';
-    if (!/^[0-9]{10}$/.test(phone)) {
+    if (!phone || !phone.trim()) {
+      return '';
+    }
+
+    const digitsOnly = phone.replace(/\D/g, '');
+    if (digitsOnly.length !== 10) {
       return 'Phone number must be exactly 10 digits';
     }
+
     return '';
   };
 
@@ -147,6 +234,10 @@ function EditProfile() {
     e.preventDefault();
     setError('');
     setSuccess('');
+    if (pictureUploading) {
+      showErrorMessage('Please wait for your profile picture upload to finish');
+      return;
+    }
 
     // Validate all fields
     const errors = {};
@@ -173,7 +264,7 @@ function EditProfile() {
     // If there are validation errors, set them and return
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
-      setError('Please fix the validation errors');
+      showErrorMessage('Please fix the validation errors');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -203,12 +294,14 @@ function EditProfile() {
       }
 
       await profileService.updateProfile(profileData, user.token);
-      setSuccess('Profile updated successfully!');
+      showSuccessMessage('Profile updated successfully!');
       setTimeout(() => {
         navigate('/profile');
       }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update profile');
+      showErrorMessage(
+        err.response?.data?.message || 'Failed to update profile'
+      );
     } finally {
       setSaving(false);
     }
@@ -245,6 +338,58 @@ function EditProfile() {
         <form onSubmit={handleSubmit}>
           <div className="form-section">
             <h3>Basic Information</h3>
+            <div className="profile-picture-upload">
+              <div className="profile-picture-preview">
+                {profilePicture?.url ? (
+                  <img
+                    src={profilePicture.url}
+                    alt="Profile"
+                    className="avatar-image"
+                  />
+                ) : (
+                  <Avatar
+                    src={null}
+                    name={formData.fullName || user?.fullName}
+                    size="150px"
+                  />
+                )}
+                {pictureUploading && (
+                  <div className="upload-overlay">
+                    <div className="spinner"></div>
+                  </div>
+                )}
+              </div>
+              <div className="profile-picture-actions">
+                <button
+                  type="button"
+                  className="btn-upload-image"
+                  onClick={triggerFilePicker}
+                  disabled={pictureUploading}
+                >
+                  {profilePicture ? 'Change Photo' : 'Upload Photo'}
+                </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={handleProfilePictureChange}
+                />
+                {profilePicture && (
+                  <button
+                    type="button"
+                    className="btn-delete-image"
+                    onClick={handleDeleteProfilePicture}
+                    disabled={pictureUploading}
+                  >
+                    Remove Photo
+                  </button>
+                )}
+              </div>
+              <p className="help-text" style={{ textAlign: 'center' }}>
+                Recommended: clear headshot, JPEG or PNG up to 5MB.
+              </p>
+            </div>
             <div className="form-row">
               <div className="form-group">
                 <label>Full Name*</label>
@@ -387,7 +532,11 @@ function EditProfile() {
             >
               Cancel
             </button>
-            <button type="submit" className="btn-save" disabled={saving}>
+            <button
+              type="submit"
+              className="btn-save"
+              disabled={saving || pictureUploading}
+            >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
