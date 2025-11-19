@@ -30,7 +30,7 @@ function EditEvent() {
   ]);
   const pageTopRef = useRef(null);
 
-  const { register, handleSubmit, control, watch, setValue, getValues, formState: { errors } } = useForm({
+  const { register, handleSubmit, control, setValue, getValues, formState: { errors } } = useForm({
     mode: 'onChange',
     reValidateMode: 'onChange',
     criteriaMode: 'firstError',

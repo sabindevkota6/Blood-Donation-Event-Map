@@ -459,7 +459,7 @@ function LocationMap({
     } finally {
       setIsSearching(false);
     }
-  }, [mapBounds, normalizeBounds, formatViewbox, getReferencePoint, computeDistanceKm, buildContextFromResult, countryCodes, suggestionLimit]);
+  }, [mapBounds, normalizeBounds, formatViewbox, getReferencePoint, countryCodes, suggestionLimit]);
 
   const handleSearch = useCallback((e) => {
     const query = e.target.value;

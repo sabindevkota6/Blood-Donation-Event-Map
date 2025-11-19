@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../shared/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUsers, FaCalendarAlt } from 'react-icons/fa';
@@ -25,6 +25,7 @@ function Dashboard() {
   const [hasMore, setHasMore] = useState(false);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [pageCounts, setPageCounts] = useState([]);
+  const filtersInitialized = useRef(false);
 
   const checkProfileCompletion = useCallback(async () => {
     try {
@@ -113,12 +114,12 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    fetchEvents(1, false);
-  }, [selectedBloodType]);
-
-  useEffect(() => {
-    fetchEvents(1, false);
-  }, [selectedDate]);
+    if (filtersInitialized.current) {
+      fetchEvents(1, false);
+    } else {
+      filtersInitialized.current = true;
+    }
+  }, [selectedBloodType, selectedDate, fetchEvents]);
 
   const handleLoadMore = () => {
     fetchEvents(currentPage + 1, true);

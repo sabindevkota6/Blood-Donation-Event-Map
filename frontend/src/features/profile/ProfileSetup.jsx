@@ -4,6 +4,7 @@ import { useAuth } from '../../shared/context/AuthContext';
 import profileService from '../../shared/services/profileService';
 import LocationMap from '../../shared/components/LocationMap';
 import Avatar from '../../shared/components/Avatar';
+import useFeedbackMessage from '../../shared/hooks/useFeedbackMessage';
 import './ProfileSetup.css';
 
 function ProfileSetup() {
@@ -20,8 +21,13 @@ function ProfileSetup() {
     memberSince: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const {
+    error,
+    success,
+    showError: showErrorMessage,
+    showSuccess: showSuccessMessage,
+    clearMessages,
+  } = useFeedbackMessage();
   const [validationErrors, setValidationErrors] = useState({});
   const [profilePicture, setProfilePicture] = useState(null);
   const [pictureUploading, setPictureUploading] = useState(false);
@@ -46,22 +52,6 @@ function ProfileSetup() {
       ignore = true;
     };
   }, [user.token]);
-
-  useEffect(() => {
-    if (error || successMessage) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [error, successMessage]);
-
-  const showErrorMessage = (message) => {
-    setError(message);
-    setSuccessMessage('');
-  };
-
-  const showSuccessMessage = (message) => {
-    setSuccessMessage(message);
-    setError('');
-  };
 
   // Validation functions
   const validatePhone = (phone) => {
@@ -139,7 +129,7 @@ function ProfileSetup() {
   };
 
   const handleNext = async () => {
-    setError('');
+    clearMessages();
     if (pictureUploading) {
       showErrorMessage('Please wait for your profile picture upload to finish');
       return;
@@ -174,19 +164,6 @@ function ProfileSetup() {
           showErrorMessage('Please fix the validation errors');
           return;
         }
-        
-        try {
-          setLoading(true);
-          // Try to update with just the phone to check if it's available
-          await profileService.updateProfile({ phone: formData.phone }, user.token);
-          setLoading(false);
-        } catch (err) {
-          setLoading(false);
-          showErrorMessage(
-            err.response?.data?.message || 'Phone number validation failed'
-          );
-          return;
-        }
       }
     }
     
@@ -201,7 +178,7 @@ function ProfileSetup() {
   };
 
   const handleBack = () => {
-    setError('');
+    clearMessages();
     setCurrentStep(currentStep - 1);
   };
 
@@ -217,7 +194,7 @@ function ProfileSetup() {
 
     try {
       setLoading(true);
-      setError('');
+      clearMessages();
 
       const profileData = {
         phone: formData.phone,
@@ -551,8 +528,8 @@ function ProfileSetup() {
         </div>
 
         {error && <div className="error-message">{error}</div>}
-        {successMessage && (
-          <div className="success-message">{successMessage}</div>
+        {success && (
+          <div className="success-message">{success}</div>
         )}
 
         <div className="setup-body">

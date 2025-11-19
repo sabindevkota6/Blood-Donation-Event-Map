@@ -1,5 +1,18 @@
 const Event = require("../models/Event");
 const User = require("../models/User");
+const asyncHandler = require("../middleware/asyncHandler");
+const { clearCachedProfileData } = require("./profileController");
+
+const EligibilityFailureReasons = {
+  NOT_DONOR: "NOT_DONOR",
+  MISSING_BLOODTYPE: "MISSING_BLOODTYPE",
+  BLOODTYPE_NOT_NEEDED: "BLOODTYPE_NOT_NEEDED",
+  FUTURE_EVENT: "FUTURE_EVENT",
+  COOLDOWN: "COOLDOWN",
+  ACTIVE_EVENT: "ACTIVE_EVENT",
+  EVENT_FULL: "EVENT_FULL",
+  ALREADY_REGISTERED: "ALREADY_REGISTERED",
+};
 
 const parseTimeStringToMinutes = (timeString = "") => {
   if (typeof timeString !== "string") {
@@ -55,6 +68,138 @@ const parseEventTimeRange = (eventTime = "") => {
   }
 
   return { startMinutes, endMinutes };
+};
+
+const evaluateRegistrationEligibility = async (user, event) => {
+  if (user.role !== "donor") {
+    return {
+      eligible: false,
+      reason: EligibilityFailureReasons.NOT_DONOR,
+    };
+  }
+
+  if (!user.bloodType) {
+    return {
+      eligible: false,
+      reason: EligibilityFailureReasons.MISSING_BLOODTYPE,
+    };
+  }
+
+  if (!event.bloodTypesNeeded.includes(user.bloodType)) {
+    return {
+      eligible: false,
+      reason: EligibilityFailureReasons.BLOODTYPE_NOT_NEEDED,
+      meta: {
+        userBloodType: user.bloodType,
+        requiredTypes: event.bloodTypesNeeded,
+      },
+    };
+  }
+
+  if (user.lastDonationDate) {
+    const lastDonationDate = new Date(user.lastDonationDate);
+    const today = new Date();
+
+    if (lastDonationDate > today) {
+      return {
+        eligible: false,
+        reason: EligibilityFailureReasons.FUTURE_EVENT,
+      };
+    }
+
+    const daysSinceLastDonation = Math.floor(
+      (today - lastDonationDate) / (1000 * 60 * 60 * 24)
+    );
+
+    if (daysSinceLastDonation < 10) {
+      return {
+        eligible: false,
+        reason: EligibilityFailureReasons.COOLDOWN,
+        meta: {
+          daysRemaining: 10 - daysSinceLastDonation,
+          lastDonationDate,
+        },
+      };
+    }
+  }
+
+  if (user.registeredEvents && user.registeredEvents.length > 0) {
+    const activeEventIds = user.registeredEvents.map((re) => re.eventId);
+    const activeEvents = await Event.find({
+      _id: { $in: activeEventIds },
+      eventDate: { $gte: new Date() },
+    }).select("eventTitle eventDate");
+
+    if (activeEvents.length > 0) {
+      return {
+        eligible: false,
+        reason: EligibilityFailureReasons.ACTIVE_EVENT,
+        meta: { eventTitle: activeEvents[0].eventTitle },
+      };
+    }
+  }
+
+  if (event.currentAttendees >= event.expectedCapacity) {
+    return {
+      eligible: false,
+      reason: EligibilityFailureReasons.EVENT_FULL,
+    };
+  }
+
+  const alreadyRegistered =
+    event.attendees &&
+    event.attendees.some(
+      (attendee) => attendee.donor.toString() === user._id.toString()
+    );
+
+  if (alreadyRegistered) {
+    return {
+      eligible: false,
+      reason: EligibilityFailureReasons.ALREADY_REGISTERED,
+    };
+  }
+
+  return {
+    eligible: true,
+    userProfile: {
+      bloodType: user.bloodType,
+      lastDonationDate: user.lastDonationDate,
+    },
+  };
+};
+
+const getEligibilityMessage = (reason, meta = {}, context = "eligibility") => {
+  switch (reason) {
+    case EligibilityFailureReasons.NOT_DONOR:
+      return "Only donors can perform this action";
+    case EligibilityFailureReasons.MISSING_BLOODTYPE:
+      return "Please update your blood type in your profile before registering.";
+    case EligibilityFailureReasons.BLOODTYPE_NOT_NEEDED:
+      if (context === "registration") {
+        return "Your blood type is not needed for this event";
+      }
+      return `Your blood type (${
+        meta.userBloodType
+      }) is not needed for this event. Required types: ${(
+        meta.requiredTypes || []
+      ).join(", ")}`;
+    case EligibilityFailureReasons.FUTURE_EVENT:
+      return "You are already registered for an event. Cannot register for multiple events at the same time.";
+    case EligibilityFailureReasons.COOLDOWN:
+      return `You must wait ${
+        meta.daysRemaining
+      } more day(s) before donating again. Last donation: ${meta.lastDonationDate?.toLocaleDateString?.()}`;
+    case EligibilityFailureReasons.ACTIVE_EVENT:
+      return `You are already registered for an event (${meta.eventTitle}). You cannot register for multiple events simultaneously.`;
+    case EligibilityFailureReasons.EVENT_FULL:
+      return context === "registration"
+        ? "Event is full"
+        : "This event is already full.";
+    case EligibilityFailureReasons.ALREADY_REGISTERED:
+      return "You are already registered for this event.";
+    default:
+      return "You are not eligible to register for this event.";
+  }
 };
 
 // @desc    Create new event
@@ -330,22 +475,20 @@ exports.getAllEvents = async (req, res) => {
       .skip(skip)
       .limit(limitNum);
 
-    // Update status for each event
-    for (let event of events) {
-      const previousStatus = event.status;
-      const updatedStatus = event.updateStatus();
-      if (updatedStatus !== previousStatus) {
-        await event.save();
-      }
-    }
+    const eventsWithComputedStatus = events.map((eventDoc) => {
+      const updatedStatus = eventDoc.updateStatus();
+      const plainEvent = eventDoc.toObject();
+      plainEvent.status = updatedStatus;
+      return plainEvent;
+    });
 
     res.status(200).json({
-      count: events.length,
+      count: eventsWithComputedStatus.length,
       total: totalEvents,
       page: pageNum,
       totalPages: Math.ceil(totalEvents / limitNum),
       hasMore: pageNum < Math.ceil(totalEvents / limitNum),
-      events,
+      events: eventsWithComputedStatus,
     });
   } catch (error) {
     console.error("Get events error:", error);
@@ -686,99 +829,25 @@ exports.checkEligibility = async (req, res) => {
       });
     }
 
-    // Check 1: Blood type match
-    if (!user.bloodType) {
-      return res.status(200).json({
+    const eligibility = await evaluateRegistrationEligibility(user, event);
+
+    if (!eligibility.eligible) {
+      const status =
+        eligibility.reason === EligibilityFailureReasons.NOT_DONOR ? 403 : 200;
+      return res.status(status).json({
         eligible: false,
-        message:
-          "Please update your blood type in your profile before registering.",
+        message: getEligibilityMessage(
+          eligibility.reason,
+          eligibility.meta,
+          "eligibility"
+        ),
       });
     }
 
-    if (!event.bloodTypesNeeded.includes(user.bloodType)) {
-      return res.status(200).json({
-        eligible: false,
-        message: `Your blood type (${
-          user.bloodType
-        }) is not needed for this event. Required types: ${event.bloodTypesNeeded.join(
-          ", "
-        )}`,
-      });
-    }
-
-    // Check 2: Last donation date (must be more than 10 days ago)
-    if (user.lastDonationDate) {
-      const lastDonationDate = new Date(user.lastDonationDate);
-      const today = new Date();
-
-      // If lastDonationDate is in the future, it means they're registered for a future event
-      if (lastDonationDate > today) {
-        return res.status(200).json({
-          eligible: false,
-          message: `You are already registered for an event. Cannot register for multiple events at the same time.`,
-        });
-      }
-
-      const daysSinceLastDonation = Math.floor(
-        (today - lastDonationDate) / (1000 * 60 * 60 * 24)
-      );
-
-      if (daysSinceLastDonation < 10) {
-        const daysRemaining = 10 - daysSinceLastDonation;
-        return res.status(200).json({
-          eligible: false,
-          message: `You must wait ${daysRemaining} more day(s) before donating again. Last donation: ${lastDonationDate.toLocaleDateString()}`,
-        });
-      }
-    }
-
-    // Check 3: Not already registered for concurrent events
-    if (user.registeredEvents && user.registeredEvents.length > 0) {
-      // Find active event registrations
-      const activeEventIds = user.registeredEvents.map((re) => re.eventId);
-      const activeEvents = await Event.find({
-        _id: { $in: activeEventIds },
-        eventDate: { $gte: new Date() }, // Events that haven't ended yet
-      });
-
-      if (activeEvents.length > 0) {
-        return res.status(200).json({
-          eligible: false,
-          message: `You are already registered for an event (${activeEvents[0].eventTitle}). You cannot register for multiple events simultaneously.`,
-        });
-      }
-    }
-
-    // Check 4: Event not full
-    if (event.currentAttendees >= event.expectedCapacity) {
-      return res.status(200).json({
-        eligible: false,
-        message: "This event is already full.",
-      });
-    }
-
-    // Check 5: Already registered for this event
-    const alreadyRegistered =
-      event.attendees &&
-      event.attendees.some(
-        (attendee) => attendee.donor.toString() === req.user.id
-      );
-
-    if (alreadyRegistered) {
-      return res.status(200).json({
-        eligible: false,
-        message: "You are already registered for this event.",
-      });
-    }
-
-    // All checks passed
     res.status(200).json({
       eligible: true,
       message: "You are eligible to register for this event.",
-      userProfile: {
-        bloodType: user.bloodType,
-        lastDonationDate: user.lastDonationDate,
-      },
+      userProfile: eligibility.userProfile,
     });
   } catch (error) {
     console.error("Check eligibility error:", error);
@@ -816,42 +885,17 @@ exports.registerForEvent = async (req, res) => {
       });
     }
 
-    // Re-check eligibility (security measure)
-    if (!event.bloodTypesNeeded.includes(user.bloodType)) {
-      return res.status(400).json({
-        message: "Your blood type is not needed for this event",
-      });
-    }
+    const eligibility = await evaluateRegistrationEligibility(user, event);
 
-    if (user.lastDonationDate) {
-      const daysSinceLastDonation = Math.floor(
-        (new Date() - new Date(user.lastDonationDate)) / (1000 * 60 * 60 * 24)
-      );
-
-      if (daysSinceLastDonation < 10) {
-        return res.status(400).json({
-          message: "You must wait at least 10 days between donations",
-        });
-      }
-    }
-
-    // Check if event is full
-    if (event.currentAttendees >= event.expectedCapacity) {
-      return res.status(400).json({
-        message: "Event is full",
-      });
-    }
-
-    // Check if already registered
-    const alreadyRegistered =
-      event.attendees &&
-      event.attendees.some(
-        (attendee) => attendee.donor.toString() === req.user.id
-      );
-
-    if (alreadyRegistered) {
-      return res.status(400).json({
-        message: "You are already registered for this event",
+    if (!eligibility.eligible) {
+      const status =
+        eligibility.reason === EligibilityFailureReasons.NOT_DONOR ? 403 : 400;
+      return res.status(status).json({
+        message: getEligibilityMessage(
+          eligibility.reason,
+          eligibility.meta,
+          "registration"
+        ),
       });
     }
 
@@ -885,6 +929,13 @@ exports.registerForEvent = async (req, res) => {
     user.totalDonations = (user.totalDonations || 0) + 1;
 
     await user.save();
+
+    // Clear profile cache so changes (new registrations/achievements) are visible immediately
+    try {
+      clearCachedProfileData(user._id.toString());
+    } catch (err) {
+      console.error("Failed to clear profile cache after registration", err);
+    }
 
     res.status(200).json({
       message: "Successfully registered for event",
@@ -925,6 +976,15 @@ exports.cancelRegistration = async (req, res) => {
     // Update status to cancelled
     event.attendees[attendeeIndex].status = "cancelled";
     await event.save();
+
+    try {
+      clearCachedProfileData(req.user.id);
+    } catch (err) {
+      console.error(
+        "Failed to clear profile cache after cancel registration",
+        err
+      );
+    }
 
     res.status(200).json({
       message: "Registration cancelled successfully",

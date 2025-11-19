@@ -6,6 +6,7 @@ import profileService from '../../shared/services/profileService';
 import Navbar from '../../shared/components/Navbar';
 import LocationMap from '../../shared/components/LocationMap';
 import Avatar from '../../shared/components/Avatar';
+import useFeedbackMessage from '../../shared/hooks/useFeedbackMessage';
 import './EditProfile.css';
 
 function EditProfile() {
@@ -13,8 +14,13 @@ function EditProfile() {
   const { user, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const {
+    error,
+    success,
+    showError: showErrorMessage,
+    showSuccess: showSuccessMessage,
+    clearMessages,
+  } = useFeedbackMessage();
   const [validationErrors, setValidationErrors] = useState({});
   const [formData, setFormData] = useState({
     fullName: '',
@@ -33,27 +39,7 @@ function EditProfile() {
 
   const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  useEffect(() => {
-    if (error || success) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [error, success]);
-
-  const showErrorMessage = (message) => {
-    setError(message);
-    setSuccess('');
-  };
-
-  const showSuccessMessage = (message) => {
-    setSuccess(message);
-    setError('');
-  };
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
       const data = await profileService.getProfile(user.token);
@@ -77,7 +63,11 @@ function EditProfile() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.token, showErrorMessage]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const validateImageFile = (file) => {
     if (!file.type.startsWith('image/')) {
@@ -232,8 +222,7 @@ function EditProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    clearMessages();
     if (pictureUploading) {
       showErrorMessage('Please wait for your profile picture upload to finish');
       return;
@@ -265,7 +254,6 @@ function EditProfile() {
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       showErrorMessage('Please fix the validation errors');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 

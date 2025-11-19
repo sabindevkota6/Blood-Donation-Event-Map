@@ -27,7 +27,7 @@ function CreateEvent() {
   ]);
   const pageTopRef = useRef(null);
 
-  const { register, handleSubmit, control, watch, setValue, getValues, formState: { errors } } = useForm({
+  const { register, handleSubmit, control, setValue, getValues, formState: { errors } } = useForm({
     mode: 'onChange', // Validate on every change
     reValidateMode: 'onChange', // Re-validate on every change
     criteriaMode: 'firstError', // Show first error only
