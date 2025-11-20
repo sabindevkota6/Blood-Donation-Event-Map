@@ -1,3 +1,7 @@
+/*
+ * LocationMap component
+ * Integrates Leaflet map UI with geosearch and geocoding utilities.
+ */
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import { OpenStreetMapProvider } from 'leaflet-geosearch';
@@ -6,7 +10,7 @@ import 'leaflet-geosearch/dist/geosearch.css';
 import './LocationMap.css';
 import L from 'leaflet';
 
-// Fix for default marker icon
+// Configure Leaflet default marker images (fix for webpack/static assets)
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -14,7 +18,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-// Reverse geocoding function
+// Reverse geocoding helper - calls Nominatim to get human-readable address
 const reverseGeocode = async (lat, lng) => {
   try {
     const response = await fetch(
@@ -28,6 +32,7 @@ const reverseGeocode = async (lat, lng) => {
   }
 };
 
+/* Utility helpers: clampValue, toRadians, computeDistanceKm, formatDistanceLabel */
 const clampValue = (value, min, max) => Math.min(Math.max(value, min), max);
 
 const toRadians = (value) => (value * Math.PI) / 180;
@@ -59,6 +64,7 @@ const formatDistanceLabel = (distanceKm) => {
   return `${distanceKm < 10 ? distanceKm.toFixed(1) : Math.round(distanceKm)} km`;
 };
 
+// Build a short context (city/area) from a geosearch result
 const buildContextFromResult = (result) => {
   const address = result?.raw?.address;
   if (!address) {
@@ -85,7 +91,7 @@ const buildContextFromResult = (result) => {
   return candidates[0] || '';
 };
 
-// Component to handle map location button
+// Button component to trigger geolocation and center the map
 function LocationButton({
   onLocationSelect,
   onPendingLocation,

@@ -1,3 +1,7 @@
+/*
+ * EventRegistrationModal
+ * Modal UI for donors to confirm eligibility and register for an event.
+ */
 import React, { useState } from 'react';
 import { FaCheckCircle, FaTimes } from 'react-icons/fa';
 import './EventRegistrationModal.css';
@@ -37,32 +41,32 @@ function EventRegistrationModal({ event, userProfile, onClose, onRegister }) {
         <h2 className="modal-title">Complete Registration</h2>
 
         <form onSubmit={handleSubmit}>
-          {/* User Profile Information */}
+          {/* Profile information (read-only) */}
           <div className="profile-info-section">
             <h3 className="section-subtitle">From your profile</h3>
-            
+
             <div className="form-group">
               <label>Blood Type</label>
-              <input 
-                type="text" 
-                value={userProfile.bloodType || 'Not specified'} 
-                disabled 
+              <input
+                type="text"
+                value={userProfile.bloodType || 'Not specified'}
+                disabled
                 className="form-input-disabled"
               />
             </div>
 
             <div className="form-group">
               <label>Last Donation Date</label>
-              <input 
-                type="text" 
-                value={formatDate(userProfile.lastDonationDate)} 
-                disabled 
+              <input
+                type="text"
+                value={formatDate(userProfile.lastDonationDate)}
+                disabled
                 className="form-input-disabled"
               />
             </div>
           </div>
 
-          {/* Eligibility Requirements */}
+          {/* Event eligibility requirements and donor confirmation checkbox */}
           <div className="eligibility-section">
             <h3 className="section-subtitle">Eligibility Requirements</h3>
             <ul className="eligibility-list">
@@ -77,8 +81,8 @@ function EventRegistrationModal({ event, userProfile, onClose, onRegister }) {
             <div className="eligibility-confirmation">
               <p className="confirmation-question">Do you meet these eligibility criteria?</p>
               <label className="checkbox-label">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={acceptedEligibility}
                   onChange={(e) => setAcceptedEligibility(e.target.checked)}
                   className="confirmation-checkbox"
@@ -88,9 +92,9 @@ function EventRegistrationModal({ event, userProfile, onClose, onRegister }) {
             </div>
           </div>
 
-          {/* Submit Button */}
-          <button 
-            type="submit" 
+          {/* Submit button */}
+          <button
+            type="submit"
             className="register-submit-btn"
             disabled={!acceptedEligibility || loading}
           >

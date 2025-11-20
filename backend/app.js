@@ -1,28 +1,31 @@
+/*
+ * Express app configuration
+ */
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 
-// Load env vars
+// Load environment variables from .env
 dotenv.config();
 
 const app = express();
 
-// Middleware
+// Basic middleware for CORS and JSON parsing
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// Mount API routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/profile", require("./routes/profileRoutes"));
 app.use("/api/events", require("./routes/eventRoutes"));
 
-// Health check route
+// Simple health check endpoint
 app.get("/api/health", (req, res) => {
   res.json({ status: "Server is running", timestamp: new Date() });
 });
 
-// Error handler middleware
+// Centralized error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({

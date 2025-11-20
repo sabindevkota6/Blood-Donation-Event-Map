@@ -1,3 +1,7 @@
+/*
+ * ProfileSetup component
+ * Multi-step profile setup for new users to complete their profile and upload a picture.
+ */
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../shared/context/AuthContext';
@@ -35,6 +39,7 @@ function ProfileSetup() {
 
   const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
+  // Load initial profile image if it exists
   useEffect(() => {
     let ignore = false;
     const loadProfile = async () => {
@@ -53,7 +58,7 @@ function ProfileSetup() {
     };
   }, [user.token]);
 
-  // Validation functions
+  // Helper validation functions for fields during setup
   const validatePhone = (phone) => {
     if (!phone) return null;
     const phoneRegex = /^[0-9]{10}$/;
@@ -92,7 +97,7 @@ function ProfileSetup() {
       ...formData,
       [name]: value,
     });
-    
+
     // Clear validation error for this field
     if (validationErrors[name]) {
       setValidationErrors({
@@ -100,7 +105,7 @@ function ProfileSetup() {
         [name]: null,
       });
     }
-    
+
     // Validate on change
     if (name === 'phone') {
       const phoneError = validatePhone(value);
@@ -134,7 +139,7 @@ function ProfileSetup() {
       showErrorMessage('Please wait for your profile picture upload to finish');
       return;
     }
-    
+
     if (currentStep === 1) {
       // Validate organization name for organizers
       if (user.role === 'organizer') {
@@ -149,13 +154,13 @@ function ProfileSetup() {
           return;
         }
       }
-      
+
       // Validate blood type for donors
       if (user.role === 'donor' && !formData.bloodType) {
         showErrorMessage('Please select your blood type');
         return;
       }
-      
+
       // Validate phone number if provided
       if (formData.phone && formData.phone.trim()) {
         const phoneError = validatePhone(formData.phone);
@@ -166,7 +171,7 @@ function ProfileSetup() {
         }
       }
     }
-    
+
     if (currentStep === 2) {
       if (!formData.position) {
         showErrorMessage('Please select your location on the map');
@@ -360,9 +365,8 @@ function ProfileSetup() {
                     <button
                       key={type}
                       type="button"
-                      className={`blood-type-btn ${
-                        formData.bloodType === type ? 'selected' : ''
-                      }`}
+                      className={`blood-type-btn ${formData.bloodType === type ? 'selected' : ''
+                        }`}
                       onClick={() => handleBloodTypeSelect(type)}
                     >
                       {type}
@@ -471,9 +475,9 @@ function ProfileSetup() {
                   <div className="summary-item">
                     <span className="label">Member Since:</span>
                     <span className="value">
-                      {new Date(formData.memberSince + '-01').toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long' 
+                      {new Date(formData.memberSince + '-01').toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long'
                       })}
                     </span>
                   </div>

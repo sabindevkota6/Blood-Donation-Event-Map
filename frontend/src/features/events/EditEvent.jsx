@@ -1,3 +1,7 @@
+/*
+ * EditEvent component
+ * Provides a pre-filled form to update an existing event and its details.
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
@@ -50,7 +54,7 @@ function EditEvent() {
     }
   });
 
-  // Fetch profile data on mount
+  // Load organizer profile information (used for pre-fill validations)
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
@@ -68,7 +72,7 @@ function EditEvent() {
     fetchProfileData();
   }, [user.token]);
 
-  // Fetch event data
+  // Load event details to populate edit form fields
   useEffect(() => {
     const fetchEventData = async () => {
       try {
@@ -82,14 +86,14 @@ function EditEvent() {
         const parseTime = (timeStr) => {
           const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
           if (!match) return '00:00';
-          
+
           let hours = parseInt(match[1]);
           const minutes = match[2];
           const period = match[3].toUpperCase();
-          
+
           if (period === 'PM' && hours !== 12) hours += 12;
           if (period === 'AM' && hours === 12) hours = 0;
-          
+
           return `${String(hours).padStart(2, '0')}:${minutes}`;
         };
 
@@ -163,7 +167,7 @@ function EditEvent() {
     }
   }, [id, user.token, setValue, profileLoading]);
 
-  // Ensure the page scrolls to the top section whenever an error message appears
+  // Scroll to top so any error messages are visible to the user
   useEffect(() => {
     if (!error) {
       return;
@@ -231,22 +235,22 @@ function EditEvent() {
     }
 
     // Validate organization name matches profile
-    if (profileData && profileData.organization && 
-        data.organizationName.trim() !== profileData.organization.trim()) {
+    if (profileData && profileData.organization &&
+      data.organizationName.trim() !== profileData.organization.trim()) {
       setError('Organization name must match your profile organization');
       return;
     }
 
     // Validate contact email matches profile
-    if (profileData && profileData.email && 
-        data.contactEmail.trim().toLowerCase() !== profileData.email.trim().toLowerCase()) {
+    if (profileData && profileData.email &&
+      data.contactEmail.trim().toLowerCase() !== profileData.email.trim().toLowerCase()) {
       setError('Contact email must match your profile email');
       return;
     }
 
     // Validate contact phone matches profile
-    if (profileData && profileData.phone && 
-        data.contactPhone.trim() !== profileData.phone.trim()) {
+    if (profileData && profileData.phone &&
+      data.contactPhone.trim() !== profileData.phone.trim()) {
       setError('Contact phone must match your profile phone number');
       return;
     }
@@ -345,7 +349,7 @@ function EditEvent() {
           {/* Basic Information */}
           <div className="form-card">
             <h2 className="section-title">Basic Information</h2>
-            
+
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="eventTitle">
@@ -357,9 +361,9 @@ function EditEvent() {
                   placeholder="e.g., Community Blood Drive 2025"
                   {...register('eventTitle', {
                     required: 'Event title is required',
-                    minLength: { 
-                      value: 3, 
-                      message: 'Title must be at least 3 characters' 
+                    minLength: {
+                      value: 3,
+                      message: 'Title must be at least 3 characters'
                     }
                   })}
                 />
@@ -375,11 +379,11 @@ function EditEvent() {
                   id="organizationName"
                   placeholder="e.g., Red Cross Center"
                   readOnly
-                  {...register('organizationName', { 
+                  {...register('organizationName', {
                     required: 'Organization name is required',
                     validate: (value) => {
                       if (!profileData?.organization) return true;
-                      return value.trim() === profileData.organization.trim() || 
+                      return value.trim() === profileData.organization.trim() ||
                         'Organization name must match your profile';
                     }
                   })}
@@ -426,7 +430,7 @@ function EditEvent() {
                       // Compare dates properly using Date objects
                       const startDateObj = new Date(startDate);
                       const endDateObj = new Date(value);
-                      
+
                       return endDateObj >= startDateObj || 'End date must be on or after the start date';
                     },
                   })}
@@ -543,7 +547,7 @@ function EditEvent() {
                 </div>
                 <input
                   type="hidden"
-                  {...register('location', { 
+                  {...register('location', {
                     required: 'Location is required',
                     validate: () => selectedLocation !== null || 'Please select a location from the map'
                   })}
@@ -561,7 +565,7 @@ function EditEvent() {
                   type="number"
                   id="expectedCapacity"
                   placeholder="e.g., 100"
-                  {...register('expectedCapacity', { 
+                  {...register('expectedCapacity', {
                     required: 'Expected capacity is required',
                     min: { value: 1, message: 'Capacity must be at least 1' },
                     valueAsNumber: true
@@ -576,7 +580,7 @@ function EditEvent() {
           <div className="form-card">
             <h2 className="section-title">Blood Types Needed</h2>
             <p className="section-subtitle">Select all blood types you need for this event</p>
-            
+
             <Controller
               name="bloodTypesNeeded"
               control={control}
@@ -602,7 +606,7 @@ function EditEvent() {
           {/* Event Details */}
           <div className="form-card">
             <h2 className="section-title">Event Details</h2>
-            
+
             <div className="form-group">
               <label htmlFor="eventDescription">
                 Event Description <span className="required">*</span>
@@ -611,7 +615,7 @@ function EditEvent() {
                 id="eventDescription"
                 placeholder="Provide a detailed description of the event..."
                 rows="5"
-                {...register('eventDescription', { 
+                {...register('eventDescription', {
                   required: 'Event description is required',
                   minLength: { value: 20, message: 'Description must be at least 20 characters' }
                 })}
@@ -656,7 +660,7 @@ function EditEvent() {
           <div className="form-card">
             <h2 className="section-title">Contact Information</h2>
             <p className="section-subtitle">Contact information from your profile</p>
-            
+
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="contactEmail">
@@ -667,7 +671,7 @@ function EditEvent() {
                   id="contactEmail"
                   placeholder="contact@example.com"
                   readOnly
-                  {...register('contactEmail', { 
+                  {...register('contactEmail', {
                     required: 'Contact email is required',
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -675,7 +679,7 @@ function EditEvent() {
                     },
                     validate: (value) => {
                       if (!profileData?.email) return true;
-                      return value.trim().toLowerCase() === profileData.email.trim().toLowerCase() || 
+                      return value.trim().toLowerCase() === profileData.email.trim().toLowerCase() ||
                         'Email must match your profile email';
                     }
                   })}
@@ -693,7 +697,7 @@ function EditEvent() {
                   id="contactPhone"
                   placeholder="+1 (555) 123-4567"
                   readOnly
-                  {...register('contactPhone', { 
+                  {...register('contactPhone', {
                     required: 'Contact phone is required',
                     pattern: {
                       value: /^[0-9]{10}$/,
@@ -701,7 +705,7 @@ function EditEvent() {
                     },
                     validate: (value) => {
                       if (!profileData?.phone) return true;
-                      return value.trim() === profileData.phone.trim() || 
+                      return value.trim() === profileData.phone.trim() ||
                         'Phone must match your profile phone number';
                     }
                   })}

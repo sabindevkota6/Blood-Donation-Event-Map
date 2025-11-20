@@ -1,3 +1,7 @@
+/*
+ * AuthContext: centralizes authentication state and profile data
+ * Provides helpers for login/logout and profile refresh to the app.
+ */
 import React, {
   createContext,
   useState,
@@ -10,6 +14,7 @@ import profileService from "../services/profileService";
 
 const AuthContext = createContext();
 
+// Hook to access auth context from components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -24,6 +29,7 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [profile, setProfile] = useState(null);
 
+  // Refresh profile data, optionally using an override token
   const refreshProfile = useCallback(
     async (overrideToken) => {
       const tokenToUse = overrideToken || user?.token;
@@ -45,8 +51,8 @@ export const AuthProvider = ({ children }) => {
     [user?.token]
   );
 
+  // On startup: load stored user and refresh profile if present
   useEffect(() => {
-    // Check if user exists and token is still valid
     const storedUser = authService.getValidUser();
     if (storedUser) {
       setUser(storedUser);
@@ -55,6 +61,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, [refreshProfile]);
 
+  // Watch for token expiry and handle automatic logout when token is expired
   useEffect(() => {
     if (!user?.token) {
       return undefined;
@@ -71,6 +78,7 @@ export const AuthProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [user?.token]);
 
+  // Attempt login with credentials, store user on success
   const login = async (email, password) => {
     try {
       setError(null);
@@ -86,6 +94,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Register a new user and preload profile data
   const register = async (userData) => {
     try {
       setError(null);
@@ -101,6 +110,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Clear stored auth/session data locally
   const logout = () => {
     authService.logout();
     setUser(null);

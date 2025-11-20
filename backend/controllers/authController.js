@@ -1,26 +1,31 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 
-// Generate JWT Token
+/*
+ * Helper: generateToken
+ * Returns a signed JWT for a user ID with expiration taken from env variables.
+ */
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
+/*
+ * Register a new user
+ * Route: POST /api/auth/register
+ * Access: Public
+ */
 const register = async (req, res) => {
   try {
     const { fullName, email, password, role } = req.body;
 
-    // Validation
+    // Basic payload validation
     if (!fullName || !email || !password || !role) {
       return res.status(400).json({ message: "Please provide all fields" });
     }
 
-    // Check if user already exists
+    // Ensure email is unique
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -29,14 +34,14 @@ const register = async (req, res) => {
         .json({ message: "User already exists with this email" });
     }
 
-    // Validate role
+    // Validate role value accepted by the app
     if (!["donor", "organizer"].includes(role)) {
       return res
         .status(400)
         .json({ message: "Invalid role. Choose donor or organizer" });
     }
 
-    // Create user
+    // Create the user document
     const user = await User.create({
       fullName,
       email,
@@ -61,35 +66,37 @@ const register = async (req, res) => {
   }
 };
 
-// @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
+/*
+ * Login (authenticate) user
+ * Route: POST /api/auth/login
+ * Access: Public
+ */
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validation
+    // Validate credentials presence
     if (!email || !password) {
       return res
         .status(400)
         .json({ message: "Please provide email and password" });
     }
 
-    // Check for user email
+    // Look up user and include password for validation
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Check if password matches
+    // Verify password - compare hashed versions
     const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Check if user is active
+    // Verify account is active
     if (!user.isActive) {
       return res
         .status(401)
@@ -109,9 +116,11 @@ const login = async (req, res) => {
   }
 };
 
-// @desc    Get current user
-// @route   GET /api/auth/me
-// @access  Private
+/*
+ * Get current user profile
+ * Route: GET /api/auth/me
+ * Access: Private
+ */
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -122,6 +131,7 @@ const getMe = async (req, res) => {
   }
 };
 
+/* Expose public controller handlers */
 module.exports = {
   register,
   login,

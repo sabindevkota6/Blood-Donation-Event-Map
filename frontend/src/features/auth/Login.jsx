@@ -1,3 +1,7 @@
+/*
+ * Login page component
+ * Handles user login via the AuthContext login helper.
+ */
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -12,8 +16,8 @@ function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // Display a message if user was redirected due to an expired session
   useEffect(() => {
-    // Check if redirected due to session expiration
     if (searchParams.get('session') === 'expired') {
       setLocalError('Your session has expired. Please log in again.');
     }

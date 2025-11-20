@@ -1,3 +1,7 @@
+/*
+ * Dashboard page
+ * Displays quick stats and a search/browse list of events; includes a profile completion reminder.
+ */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../shared/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -27,10 +31,11 @@ function Dashboard() {
   const [pageCounts, setPageCounts] = useState([]);
   const filtersInitialized = useRef(false);
 
+  // Check whether the user's profile is complete; show modal for onboarding if incomplete
   const checkProfileCompletion = useCallback(async () => {
     try {
       const data = await profileService.getProfile(user.token);
-      
+
       // Show modal for both donors and organizers with incomplete profiles
       if (!data.isProfileComplete) {
         setShowModal(true);
@@ -42,6 +47,7 @@ function Dashboard() {
     }
   }, [user.token]);
 
+  // Retrieve dashboard statistics (active events, registered donors)
   const fetchDashboardStats = async () => {
     try {
       const data = await eventService.getDashboardStats();
@@ -51,6 +57,7 @@ function Dashboard() {
     }
   };
 
+  // Fetch a paginated list of public events with optional filters
   const fetchEvents = useCallback(async (page = 1, append = false) => {
     try {
       setEventsLoading(true);
@@ -76,9 +83,9 @@ function Dashboard() {
       const eventsArray = Array.isArray(data?.events)
         ? data.events
         : Array.isArray(data)
-        ? data
-        : [];
-      
+          ? data
+          : [];
+
       if (append) {
         setEvents(prev => [...prev, ...eventsArray]);
         setPageCounts((prev) => [...prev, eventsArray.length]);
@@ -86,7 +93,7 @@ function Dashboard() {
         setEvents(eventsArray);
         setPageCounts([eventsArray.length]);
       }
-      
+
       setHasMore(Boolean(data?.hasMore));
       setCurrentPage(page);
     } catch (error) {
@@ -192,7 +199,7 @@ function Dashboard() {
     <div className="dashboard-page">
       <Navbar />
       {showModal && <ProfileCompleteModal onContinue={handleContinue} />}
-      
+
       <div className="dashboard-container">
         {/* Welcome Section (card contains stats and CTA) */}
         <div className="welcome-section">
@@ -227,7 +234,7 @@ function Dashboard() {
         {/* Find Events Section */}
         <div className="find-events-section">
           <h2 className="section-title">Find Events</h2>
-          
+
           {/* Search Bar */}
           <form onSubmit={handleSearch} className="search-form">
             <div className="search-input-wrapper">
@@ -336,7 +343,7 @@ function Dashboard() {
                       <span className="participants-count">{event.currentAttendees || 0} participants</span>
                     </div>
 
-                    <button 
+                    <button
                       className="btn-view-details"
                       onClick={() => handleViewEvent(event._id)}
                     >
@@ -359,7 +366,7 @@ function Dashboard() {
                     </button>
                   )}
                   {hasMore && (
-                    <button 
+                    <button
                       className="load-action-btn btn-load-more"
                       onClick={handleLoadMore}
                       disabled={eventsLoading}

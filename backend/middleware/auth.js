@@ -1,3 +1,8 @@
+/*
+ * Auth middleware (server-side)
+ * - protect: verifies JWT and attaches the user to req.user
+ * - authorize: restricts routes by user role
+ */
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
@@ -9,13 +14,13 @@ const protect = async (req, res, next) => {
     req.headers.authorization.startsWith("Bearer")
   ) {
     try {
-      // Get token from header
+      // Extract bearer token from Authorization header
       token = req.headers.authorization.split(" ")[1];
 
-      // Verify token
+      // Verify JWT and decode payload
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Get user from token
+      // Attach user (without password) to request for further handlers
       req.user = await User.findById(decoded.id).select("-password");
 
       if (!req.user) {
@@ -34,7 +39,7 @@ const protect = async (req, res, next) => {
   }
 };
 
-// Middleware to check if user has specific role
+// Role-based access control middleware
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {

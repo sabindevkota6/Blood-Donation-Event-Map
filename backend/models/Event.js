@@ -1,12 +1,15 @@
+// Event model: stores event details, attendees and helper methods
 const mongoose = require("mongoose");
 
 const eventSchema = new mongoose.Schema(
   {
+    // Organizer (user who created the event)
     organizer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+    // Basic event information
     eventTitle: {
       type: String,
       required: true,
@@ -17,6 +20,7 @@ const eventSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    // Timing & scheduling details
     eventDate: {
       type: Date,
       required: true,
@@ -28,6 +32,7 @@ const eventSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    // Location and coordinates for map integration
     location: {
       type: String,
       required: true,
@@ -43,6 +48,7 @@ const eventSchema = new mongoose.Schema(
         required: false,
       },
     },
+    // Capacity & attendee tracking
     expectedCapacity: {
       type: Number,
       required: true,
@@ -52,6 +58,7 @@ const eventSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Required blood types for the event
     bloodTypesNeeded: [
       {
         type: String,
@@ -83,6 +90,7 @@ const eventSchema = new mongoose.Schema(
       enum: ["upcoming", "ongoing", "completed", "cancelled"],
       default: "upcoming",
     },
+    // Attendees list with quick status
     attendees: [
       {
         donor: {
@@ -106,7 +114,8 @@ const eventSchema = new mongoose.Schema(
   }
 );
 
-// Index for efficient queries
+// Database indexes to help query performances
+// (organizer, event date, text search on title/location)
 eventSchema.index({ organizer: 1, eventDate: -1 });
 eventSchema.index({ eventDate: 1, status: 1 });
 eventSchema.index({ location: "text", eventTitle: "text" });

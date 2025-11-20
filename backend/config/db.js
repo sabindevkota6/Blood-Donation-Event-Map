@@ -1,3 +1,7 @@
+/*
+ * Mongoose DB connection helper
+ * Connects to MongoDB using the MONGODB_URI env variable.
+ */
 const mongoose = require("mongoose");
 
 const connectDB = async () => {

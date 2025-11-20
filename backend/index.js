@@ -1,3 +1,4 @@
+/* Server entrypoint - bootstraps database and starts Express app */
 const app = require("./app");
 const connectDB = require("./config/db");
 

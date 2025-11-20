@@ -1,7 +1,12 @@
+/*
+ * Avatar component: simple user avatar display
+ * Falls back to initials if image is unavailable and supports size variations.
+ */
 import React from 'react';
 import './Avatar.css';
 
 function Avatar({ src, name, size = 'medium' }) {
+  // Extract initials from a full name for fallback avatar
   const getInitials = (fullName) => {
     if (!fullName) return '?';
     const names = fullName.trim().split(' ');

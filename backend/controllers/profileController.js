@@ -1,3 +1,8 @@
+/*
+ * Profile Controller
+ * Handles retrieval and updates to user profiles, including
+ * computed summaries for donors and organizers.
+ */
 const User = require("../models/User");
 const Event = require("../models/Event");
 const {
@@ -6,9 +11,11 @@ const {
 } = require("../config/cloudinary");
 const asyncHandler = require("../middleware/asyncHandler");
 
+// TTL and in-memory cache for computed profile summaries
 const PROFILE_CACHE_TTL_MS = 2 * 60 * 1000;
 const profileStatsCache = new Map();
 
+/* Cache accessor: Returns cached profile data if fresh */
 const getCachedProfileData = (key) => {
   const entry = profileStatsCache.get(key);
   if (!entry) {
@@ -21,16 +28,20 @@ const getCachedProfileData = (key) => {
   return entry.data;
 };
 
+/* Cache setter: Store computed profile data with a timestamp */
 const setCachedProfileData = (key, data) => {
   profileStatsCache.set(key, { data, timestamp: Date.now() });
 };
 
+/* Cache invalidation helper: remove cached entries for a user */
 const clearCachedProfileData = (userId) => {
-  // Remove both donor and organizer caches for this user
   profileStatsCache.delete(`donor:${userId}`);
   profileStatsCache.delete(`organizer:${userId}`);
 };
 
+/* Build profile summary for organizers, using Mongo aggregations.
+ * Returns computed fields like event counts, recent events and achievements.
+ */
 const buildOrganizerProfileData = async (user) => {
   const cacheKey = `organizer:${user._id.toString()}`;
   const cached = getCachedProfileData(cacheKey);
@@ -84,6 +95,7 @@ const buildOrganizerProfileData = async (user) => {
   const firstEventDate =
     organizerStats?.[0]?.firstEvent?.[0]?.createdAt || null;
 
+  // Build achievements based on aggregated stats
   const achievements = [];
 
   if (summary.totalEvents >= 1) {
@@ -131,10 +143,14 @@ const buildOrganizerProfileData = async (user) => {
     })),
   };
 
+  // Cache the computed organizer profile summary
   setCachedProfileData(cacheKey, data);
   return data;
 };
 
+/* Build profile summary for donors.
+ * Includes donation history and derived achievements.
+ */
 const buildDonorProfileData = async (user) => {
   const cacheKey = `donor:${user._id.toString()}`;
   const cached = getCachedProfileData(cacheKey);
@@ -197,10 +213,12 @@ const buildDonorProfileData = async (user) => {
     })),
   };
 
+  // Cache computed donor profile data
   setCachedProfileData(cacheKey, data);
   return data;
 };
 
+/* Controller: Get user profile (with role-specific computed data) */
 const getProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
@@ -221,6 +239,7 @@ const getProfile = asyncHandler(async (req, res) => {
   res.json(userProfile);
 });
 
+/* Controller: Update profile details for current user */
 const updateProfile = asyncHandler(async (req, res) => {
   const {
     fullName,
@@ -300,6 +319,7 @@ const updateProfile = asyncHandler(async (req, res) => {
   res.json(user);
 });
 
+/* Controller: Upload a profile picture using Cloudinary */
 const uploadProfilePicture = asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "Please upload an image" });
@@ -340,6 +360,7 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
   });
 });
 
+/* Controller: Delete a user's profile picture from Cloudinary */
 const deleteProfilePicture = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 

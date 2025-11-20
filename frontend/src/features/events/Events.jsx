@@ -1,3 +1,7 @@
+/*
+ * Events page: lists events for a user (organizer-specific actions are supported)
+ * Displays categorized lists and supports edit/cancel/delete for organizer events.
+ */
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -33,13 +37,14 @@ function Events() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Scroll to top when success or error messages change
+  // Auto-scroll when user feedback messages appear
   useEffect(() => {
     if (success || error) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [success, error]);
 
+  // Fetch organizer events on mount and when token changes
   useEffect(() => {
     if (!user?.token) {
       setEvents([]);
@@ -231,7 +236,7 @@ function Events() {
   return (
     <div className="events-page">
       <Navbar />
-      
+
       <div className="events-container">
         {/* Header */}
         <div className="events-header">

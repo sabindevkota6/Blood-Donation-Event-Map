@@ -1,3 +1,8 @@
+/*
+ * Application root and route configuration
+ * - Uses an AuthProvider for global auth state
+ * - ProtectedRoute enforces authenticated access
+ */
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -17,7 +22,7 @@ import CreateEvent from "./features/events/CreateEvent";
 import EditEvent from "./features/events/EditEvent";
 import EventDetail from "./features/events/EventDetail";
 
-// Protected Route Component
+// Wrapper that restricts access to authenticated users
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
@@ -28,7 +33,7 @@ const ProtectedRoute = ({ children }) => {
   return user ? children : <Navigate to="/login" replace />;
 };
 
-// Auth Route Component (redirects to dashboard if already logged in)
+// Wrapper used for auth pages - redirects authenticated users away from login/register
 const AuthRoute = ({ children }) => {
   const { user, loading } = useAuth();
 

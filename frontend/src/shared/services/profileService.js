@@ -1,8 +1,9 @@
 import axios from "axios";
 import API_URL from "../config/api";
 
+/* profileService: API helpers for profile CRUD and media upload */
 const profileService = {
-  // Get user profile
+  /* Retrieve current user's profile (requires token) */
   getProfile: async (token) => {
     const config = {
       headers: {
@@ -13,7 +14,7 @@ const profileService = {
     return response.data;
   },
 
-  // Update profile
+  /* Update profile details */
   updateProfile: async (profileData, token) => {
     const config = {
       headers: {
@@ -24,7 +25,7 @@ const profileService = {
     return response.data;
   },
 
-  // Complete profile (same as update, but semantically different)
+  /* Mark profile complete - wrapper for updateProfile */
   completeProfile: async (profileData, token) => {
     const config = {
       headers: {
@@ -35,7 +36,7 @@ const profileService = {
     return response.data;
   },
 
-  // Upload profile picture
+  /* Upload a profile image; uses multipart form data */
   uploadProfilePicture: async (formData, token) => {
     const config = {
       headers: {
@@ -51,7 +52,7 @@ const profileService = {
     return response.data;
   },
 
-  // Delete profile picture
+  /* Delete uploaded profile image */
   deleteProfilePicture: async (token) => {
     const config = {
       headers: {

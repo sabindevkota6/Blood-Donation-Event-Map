@@ -1,3 +1,6 @@
+/*
+ * CreateEvent component: Organizer form for creating a new event
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
@@ -47,14 +50,14 @@ function CreateEvent() {
     }
   });
 
-  // Fetch profile data on mount
+  // Load organizer profile to auto-fill contact and organization fields
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
         setProfileLoading(true);
         const data = await profileService.getProfile(user.token);
         setProfileData(data);
-        
+
         // Pre-fill form with profile data (excluding location)
         if (data.organization) {
           setValue('organizationName', data.organization);
@@ -77,7 +80,7 @@ function CreateEvent() {
     fetchProfileData();
   }, [user.token, setValue]);
 
-  // Ensure the page scrolls to the top section whenever an error message appears
+  // Scroll the page to the top when an error shows so the user sees it
   useEffect(() => {
     if (!error) {
       return;
@@ -90,7 +93,7 @@ function CreateEvent() {
     }
   }, [error]);
 
-  // Handle location selection from map
+  // Map selection handler: update selected location and set the form location value
   const handleLocationSelect = (position, address) => {
     setSelectedLocation({
       coordinates: position,
@@ -140,22 +143,22 @@ function CreateEvent() {
     }
 
     // Validate organization name matches profile
-    if (profileData && profileData.organization && 
-        data.organizationName.trim() !== profileData.organization.trim()) {
+    if (profileData && profileData.organization &&
+      data.organizationName.trim() !== profileData.organization.trim()) {
       setError('Organization name must match your profile organization');
       return;
     }
 
     // Validate contact email matches profile
-    if (profileData && profileData.email && 
-        data.contactEmail.trim().toLowerCase() !== profileData.email.trim().toLowerCase()) {
+    if (profileData && profileData.email &&
+      data.contactEmail.trim().toLowerCase() !== profileData.email.trim().toLowerCase()) {
       setError('Contact email must match your profile email');
       return;
     }
 
     // Validate contact phone matches profile
-    if (profileData && profileData.phone && 
-        data.contactPhone.trim() !== profileData.phone.trim()) {
+    if (profileData && profileData.phone &&
+      data.contactPhone.trim() !== profileData.phone.trim()) {
       setError('Contact phone must match your profile phone number');
       return;
     }
@@ -220,7 +223,7 @@ function CreateEvent() {
     <div className="create-event-page">
       <Navbar />
 
-  <div ref={pageTopRef} className="create-event-container">
+      <div ref={pageTopRef} className="create-event-container">
         {/* Header */}
         <div className="create-event-header">
           <button className="back-link" onClick={() => navigate('/events')}>
@@ -243,7 +246,7 @@ function CreateEvent() {
           {/* Basic Information */}
           <div className="form-card">
             <h2 className="section-title">Basic Information</h2>
-            
+
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="eventTitle">
@@ -255,9 +258,9 @@ function CreateEvent() {
                   placeholder="e.g., Community Blood Drive 2025"
                   {...register('eventTitle', {
                     required: 'Event title is required',
-                    minLength: { 
-                      value: 3, 
-                      message: 'Title must be at least 3 characters' 
+                    minLength: {
+                      value: 3,
+                      message: 'Title must be at least 3 characters'
                     }
                   })}
                 />
@@ -273,11 +276,11 @@ function CreateEvent() {
                   id="organizationName"
                   placeholder="e.g., Red Cross Center"
                   readOnly
-                  {...register('organizationName', { 
+                  {...register('organizationName', {
                     required: 'Organization name is required',
                     validate: (value) => {
                       if (!profileData?.organization) return true;
-                      return value.trim() === profileData.organization.trim() || 
+                      return value.trim() === profileData.organization.trim() ||
                         'Organization name must match your profile';
                     }
                   })}
@@ -324,7 +327,7 @@ function CreateEvent() {
                       // Compare dates properly using Date objects
                       const startDateObj = new Date(startDate);
                       const endDateObj = new Date(value);
-                      
+
                       return endDateObj >= startDateObj || 'End date must be on or after the start date';
                     },
                   })}
@@ -441,7 +444,7 @@ function CreateEvent() {
                 </div>
                 <input
                   type="hidden"
-                  {...register('location', { 
+                  {...register('location', {
                     required: 'Location is required',
                     validate: () => selectedLocation !== null || 'Please select a location from the map'
                   })}
@@ -459,7 +462,7 @@ function CreateEvent() {
                   type="number"
                   id="expectedCapacity"
                   placeholder="e.g., 100"
-                  {...register('expectedCapacity', { 
+                  {...register('expectedCapacity', {
                     required: 'Expected capacity is required',
                     min: { value: 1, message: 'Capacity must be at least 1' },
                     valueAsNumber: true
@@ -474,7 +477,7 @@ function CreateEvent() {
           <div className="form-card">
             <h2 className="section-title">Blood Types Needed</h2>
             <p className="section-subtitle">Select all blood types you need for this event</p>
-            
+
             <Controller
               name="bloodTypesNeeded"
               control={control}
@@ -500,7 +503,7 @@ function CreateEvent() {
           {/* Event Details */}
           <div className="form-card">
             <h2 className="section-title">Event Details</h2>
-            
+
             <div className="form-group">
               <label htmlFor="eventDescription">
                 Event Description <span className="required">*</span>
@@ -509,7 +512,7 @@ function CreateEvent() {
                 id="eventDescription"
                 placeholder="Provide a detailed description of the event..."
                 rows="5"
-                {...register('eventDescription', { 
+                {...register('eventDescription', {
                   required: 'Event description is required',
                   minLength: { value: 20, message: 'Description must be at least 20 characters' }
                 })}
@@ -554,7 +557,7 @@ function CreateEvent() {
           <div className="form-card">
             <h2 className="section-title">Contact Information</h2>
             <p className="section-subtitle">Contact information from your profile</p>
-            
+
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="contactEmail">
@@ -565,7 +568,7 @@ function CreateEvent() {
                   id="contactEmail"
                   placeholder="contact@example.com"
                   readOnly
-                  {...register('contactEmail', { 
+                  {...register('contactEmail', {
                     required: 'Contact email is required',
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -573,7 +576,7 @@ function CreateEvent() {
                     },
                     validate: (value) => {
                       if (!profileData?.email) return true;
-                      return value.trim().toLowerCase() === profileData.email.trim().toLowerCase() || 
+                      return value.trim().toLowerCase() === profileData.email.trim().toLowerCase() ||
                         'Email must match your profile email';
                     }
                   })}
@@ -591,7 +594,7 @@ function CreateEvent() {
                   id="contactPhone"
                   placeholder="+1 (555) 123-4567"
                   readOnly
-                  {...register('contactPhone', { 
+                  {...register('contactPhone', {
                     required: 'Contact phone is required',
                     pattern: {
                       value: /^[0-9]{10}$/,
@@ -599,7 +602,7 @@ function CreateEvent() {
                     },
                     validate: (value) => {
                       if (!profileData?.phone) return true;
-                      return value.trim() === profileData.phone.trim() || 
+                      return value.trim() === profileData.phone.trim() ||
                         'Phone must match your profile phone number';
                     }
                   })}

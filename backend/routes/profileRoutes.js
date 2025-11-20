@@ -1,3 +1,7 @@
+/*
+ * Profile routes
+ * All endpoints are protected and allow a user to manage their profile.
+ */
 const express = require("express");
 const router = express.Router();
 const upload = require("../middleware/upload");

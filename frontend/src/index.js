@@ -1,3 +1,6 @@
+/*
+ * App entrypoint: renders the React application into the DOM.
+ */
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";

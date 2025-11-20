@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
+/*
+ * User model schema definition
+ * Includes donor-specific fields such as donation counts and registration history
+ */
 const userSchema = new mongoose.Schema(
   {
     fullName: {
@@ -105,7 +109,10 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Hash password before saving
+/*
+ * Password hashing middleware
+ * Hashes the password before saving when it has been changed.
+ */
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     next();
@@ -114,7 +121,10 @@ userSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Method to compare password
+/*
+ * Instance method: comparePassword
+ * Compares a plain password with the stored hashed password.
+ */
 userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };

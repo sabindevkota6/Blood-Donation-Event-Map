@@ -1,3 +1,7 @@
+/*
+ * Register component
+ * Allows a new user (donor or organizer) to create an account.
+ */
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';

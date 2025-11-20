@@ -1,3 +1,7 @@
+/*
+ * EventDetail component
+ * Shows event details and allows donors to check eligibility and register.
+ */
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaArrowLeft, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUsers, FaCheckCircle } from 'react-icons/fa';
@@ -28,13 +32,13 @@ function EventDetail() {
         const response = await eventService.getEvent(id);
         const eventData = response.event || response;
         setEvent(eventData);
-        
+
         // Check if user is already registered for this event
         if (user && user._id && eventData.attendees) {
           const registered = eventData.attendees.some(
             (attendee) => {
-              const donorId = typeof attendee.donor === 'string' 
-                ? attendee.donor 
+              const donorId = typeof attendee.donor === 'string'
+                ? attendee.donor
                 : attendee.donor?._id;
               return donorId === user._id;
             }
@@ -94,13 +98,14 @@ function EventDetail() {
     return `${startFormatted} - ${endFormatted}`;
   };
 
+  // Trigger eligibility check and show registration modal if eligible
   const handleRegisterClick = async () => {
     try {
       setEligibilityError('');
-      
+
       // Check eligibility
       const response = await eventService.checkEligibility(id, token);
-      
+
       if (response.eligible) {
         // Fetch user profile
         const profileData = await profileService.getProfile(token);
@@ -118,29 +123,30 @@ function EventDetail() {
     }
   };
 
+  // Confirm registration and then refresh event data
   const handleRegistration = async () => {
     try {
       await eventService.registerForEvent(id, token);
       setShowRegistrationModal(false);
-      
+
       // Refresh event data and update registration status
       const response = await eventService.getEvent(id);
       const eventData = response.event || response;
       setEvent(eventData);
-      
+
       // Check registration status from updated event data
       if (user && user._id && eventData.attendees) {
         const registered = eventData.attendees.some(
           (attendee) => {
-            const donorId = typeof attendee.donor === 'string' 
-              ? attendee.donor 
+            const donorId = typeof attendee.donor === 'string'
+              ? attendee.donor
               : attendee.donor?._id;
             return donorId === user._id;
           }
         );
         setIsRegistered(registered);
       }
-      
+
       alert('Successfully registered for the event!');
     } catch (err) {
       console.error('Error registering for event:', err);
@@ -170,7 +176,7 @@ function EventDetail() {
     );
   }
 
-  const mapCenter = event.locationCoordinates 
+  const mapCenter = event.locationCoordinates
     ? [event.locationCoordinates.lat, event.locationCoordinates.lng]
     : [27.7172, 85.324];
 
@@ -180,7 +186,7 @@ function EventDetail() {
   return (
     <div className="event-detail-page">
       <Navbar />
-      
+
       <div className="event-detail-container">
         {/* Back Button */}
         <button className="back-button" onClick={() => navigate(-1)}>
@@ -232,7 +238,7 @@ function EventDetail() {
             <div className="info-card-header">
               <div className="blood-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C12 2 6 8 6 13C6 16.31 8.69 19 12 19C15.31 19 18 16.31 18 13C18 8 12 2 12 2Z"/>
+                  <path d="M12 2C12 2 6 8 6 13C6 16.31 8.69 19 12 19C15.31 19 18 16.31 18 13C18 8 12 2 12 2Z" />
                 </svg>
               </div>
               <span>Blood Types Needed</span>
@@ -257,8 +263,8 @@ function EventDetail() {
                 {event.currentAttendees} / {event.expectedCapacity}
               </div>
               <div className="progress-bar">
-                <div 
-                  className="progress-fill" 
+                <div
+                  className="progress-fill"
                   style={{ width: `${percentageFilled}%` }}
                 ></div>
               </div>
@@ -277,7 +283,7 @@ function EventDetail() {
               zoom={13}
               showSearch={false}
               showCurrentLocation={false}
-              onLocationChange={() => {}} // Read-only map
+              onLocationChange={() => { }} // Read-only map
             />
           </div>
           <div className="location-address">
@@ -339,13 +345,13 @@ function EventDetail() {
               <h2 className="section-title">Contact Information</h2>
               <div className="contact-item">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z"/>
+                  <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z" />
                 </svg>
                 <span>{event.contactEmail}</span>
               </div>
               <div className="contact-item">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6.62 10.79C8.06 13.62 10.38 15.94 13.21 17.38L15.41 15.18C15.69 14.9 16.08 14.82 16.43 14.93C17.55 15.3 18.75 15.5 20 15.5C20.55 15.5 21 15.95 21 16.5V20C21 20.55 20.55 21 20 21C10.61 21 3 13.39 3 4C3 3.45 3.45 3 4 3H7.5C8.05 3 8.5 3.45 8.5 4C8.5 5.25 8.7 6.45 9.07 7.57C9.18 7.92 9.1 8.31 8.82 8.59L6.62 10.79Z"/>
+                  <path d="M6.62 10.79C8.06 13.62 10.38 15.94 13.21 17.38L15.41 15.18C15.69 14.9 16.08 14.82 16.43 14.93C17.55 15.3 18.75 15.5 20 15.5C20.55 15.5 21 15.95 21 16.5V20C21 20.55 20.55 21 20 21C10.61 21 3 13.39 3 4C3 3.45 3.45 3 4 3H7.5C8.05 3 8.5 3.45 8.5 4C8.5 5.25 8.7 6.45 9.07 7.57C9.18 7.92 9.1 8.31 8.82 8.59L6.62 10.79Z" />
                 </svg>
                 <span>{event.contactPhone}</span>
               </div>
@@ -364,7 +370,7 @@ function EventDetail() {
                       {eligibilityError}
                     </div>
                   )}
-                  <button 
+                  <button
                     className={`register-event-btn ${isRegistered ? 'registered' : ''}`}
                     onClick={handleRegisterClick}
                     disabled={isRegistered}

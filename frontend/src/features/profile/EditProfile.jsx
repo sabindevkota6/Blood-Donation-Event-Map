@@ -1,3 +1,7 @@
+/*
+ * EditProfile component
+ * Provides a form to edit user profile information and manage profile picture.
+ */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
@@ -39,6 +43,7 @@ function EditProfile() {
 
   const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
+  // Load profile data and initialize form values
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
@@ -69,6 +74,7 @@ function EditProfile() {
     fetchProfile();
   }, [fetchProfile]);
 
+  // Image file validation for profile pictures
   const validateImageFile = (file) => {
     if (!file.type.startsWith('image/')) {
       return 'Please select an image file';
@@ -80,6 +86,7 @@ function EditProfile() {
     return null;
   };
 
+  // Upload a new profile picture and refresh local profile
   const handleProfilePictureChange = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -106,7 +113,7 @@ function EditProfile() {
     } catch (uploadError) {
       showErrorMessage(
         uploadError.response?.data?.message ||
-          'Failed to upload profile picture'
+        'Failed to upload profile picture'
       );
     } finally {
       setPictureUploading(false);
@@ -114,6 +121,7 @@ function EditProfile() {
     }
   };
 
+  // Remove user's profile picture via API and refresh profile
   const handleDeleteProfilePicture = async () => {
     if (!profilePicture) return;
     try {
@@ -125,7 +133,7 @@ function EditProfile() {
     } catch (deleteError) {
       showErrorMessage(
         deleteError.response?.data?.message ||
-          'Failed to delete profile picture'
+        'Failed to delete profile picture'
       );
     } finally {
       setPictureUploading(false);
@@ -137,6 +145,7 @@ function EditProfile() {
   };
 
   // Handle location changes from the map component
+  // Map component callback to update user's geographic position and address
   const handleLocationChange = useCallback((position, address) => {
     setFormData(prev => ({
       ...prev,
@@ -145,7 +154,7 @@ function EditProfile() {
     }));
   }, []);
 
-  // Validation functions
+  // Field validation helpers for the form
   const validatePhone = (phone) => {
     if (!phone || !phone.trim()) {
       return '';
@@ -220,6 +229,7 @@ function EditProfile() {
     });
   };
 
+  // Submit updated profile data to the API
   const handleSubmit = async (e) => {
     e.preventDefault();
     clearMessages();
@@ -230,7 +240,7 @@ function EditProfile() {
 
     // Validate all fields
     const errors = {};
-    
+
     const nameError = validateName(formData.fullName);
     if (nameError) errors.fullName = nameError;
 
@@ -418,9 +428,8 @@ function EditProfile() {
                   <button
                     key={type}
                     type="button"
-                    className={`blood-type-btn ${
-                      formData.bloodType === type ? 'selected' : ''
-                    }`}
+                    className={`blood-type-btn ${formData.bloodType === type ? 'selected' : ''
+                      }`}
                     onClick={() => handleBloodTypeSelect(type)}
                   >
                     {type}
@@ -488,7 +497,7 @@ function EditProfile() {
 
           <div className="form-section">
             <h3>Location</h3>
-            
+
             {/* Selected address display */}
             {formData.address && (
               <div className="selected-address">
@@ -499,7 +508,7 @@ function EditProfile() {
             <p className="help-text">
               Search for a location or click on the map to update your location
             </p>
-            
+
             {/* Using the reusable LocationMap component */}
             <LocationMap
               position={formData.position}

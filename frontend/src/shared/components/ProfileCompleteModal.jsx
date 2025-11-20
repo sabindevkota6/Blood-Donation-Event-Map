@@ -1,3 +1,7 @@
+/*
+ * ProfileCompleteModal
+ * Simple modal prompting users to complete their profile details.
+ */
 import React from 'react';
 import './ProfileCompleteModal.css';
 

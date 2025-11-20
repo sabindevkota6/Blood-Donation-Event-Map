@@ -1,3 +1,6 @@
+/*
+ * Navbar component - top-level navigation bar with user info and logout
+ */
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -10,14 +13,17 @@ function Navbar() {
   const displayName = profile?.fullName || user?.fullName || user?.name;
   const avatarSrc = profile?.profilePicture?.url;
 
+  // Navigate user to dashboard
   const handleHomeClick = () => {
     navigate('/dashboard');
   };
 
+  // Open profile page
   const handleProfileClick = () => {
     navigate('/profile');
   };
 
+  // Perform logout and navigate to login screen
   const handleLogout = () => {
     logout();
     navigate('/login');

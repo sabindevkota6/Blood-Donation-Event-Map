@@ -1,8 +1,14 @@
+/*
+ * Event Controller
+ * Handles creation, editing, deletion and donor registration logic for events.
+ * Also includes eligibility evaluation utilities used during registration.
+ */
 const Event = require("../models/Event");
 const User = require("../models/User");
 const asyncHandler = require("../middleware/asyncHandler");
 const { clearCachedProfileData } = require("./profileController");
 
+// Reasons for potential registration rejection; used to generate helpful responses
 const EligibilityFailureReasons = {
   NOT_DONOR: "NOT_DONOR",
   MISSING_BLOODTYPE: "MISSING_BLOODTYPE",
@@ -14,6 +20,10 @@ const EligibilityFailureReasons = {
   ALREADY_REGISTERED: "ALREADY_REGISTERED",
 };
 
+/*
+ * Helper: parseTimeStringToMinutes
+ * Converts a time like "9:00 AM" to minutes since midnight (integer) or null
+ */
 const parseTimeStringToMinutes = (timeString = "") => {
   if (typeof timeString !== "string") {
     return null;
@@ -50,6 +60,11 @@ const parseTimeStringToMinutes = (timeString = "") => {
   return hours * 60 + minutes;
 };
 
+/*
+ * Helper: parseEventTimeRange
+ * Given an 'eventTime' string like "9:00 AM - 5:00 PM", returns
+ * start and end as minutes since midnight or null for invalid input.
+ */
 const parseEventTimeRange = (eventTime = "") => {
   if (typeof eventTime !== "string") {
     return null;
@@ -70,6 +85,11 @@ const parseEventTimeRange = (eventTime = "") => {
   return { startMinutes, endMinutes };
 };
 
+/*
+ * evaluateRegistrationEligibility
+ * Checks a donor and event to determine whether registration is allowed.
+ * Returns an object with { eligible: boolean, reason: optionalReason, meta: optionalMeta }
+ */
 const evaluateRegistrationEligibility = async (user, event) => {
   if (user.role !== "donor") {
     return {
@@ -96,6 +116,7 @@ const evaluateRegistrationEligibility = async (user, event) => {
     };
   }
 
+  // If user has a recorded last donation, enforce cooldown rules
   if (user.lastDonationDate) {
     const lastDonationDate = new Date(user.lastDonationDate);
     const today = new Date();
@@ -123,6 +144,7 @@ const evaluateRegistrationEligibility = async (user, event) => {
     }
   }
 
+  // Prevent registering if user has other active (upcoming) registered events
   if (user.registeredEvents && user.registeredEvents.length > 0) {
     const activeEventIds = user.registeredEvents.map((re) => re.eventId);
     const activeEvents = await Event.find({
@@ -139,6 +161,7 @@ const evaluateRegistrationEligibility = async (user, event) => {
     }
   }
 
+  // Ensure event capacity has remaining slots
   if (event.currentAttendees >= event.expectedCapacity) {
     return {
       eligible: false,
@@ -146,6 +169,7 @@ const evaluateRegistrationEligibility = async (user, event) => {
     };
   }
 
+  // Confirm that the user doesn't appear in the event's attendees already
   const alreadyRegistered =
     event.attendees &&
     event.attendees.some(

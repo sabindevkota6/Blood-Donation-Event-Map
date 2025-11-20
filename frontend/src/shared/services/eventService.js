@@ -1,7 +1,11 @@
+/*
+ * eventService: wrapper for API calls related to events
+ * Each method returns JSON data or throws with an appropriate message.
+ */
 const API_URL = "http://localhost:5000/api/events";
 
 const eventService = {
-  // Get dashboard statistics
+  /* Get backend dashboard statistics for events */
   getDashboardStats: async () => {
     const response = await fetch(`${API_URL}/dashboard/stats`);
     const data = await response.json();
@@ -13,7 +17,7 @@ const eventService = {
     return data;
   },
 
-  // Create new event
+  /* Create a new event (organizer endpoint) */
   createEvent: async (eventData, token) => {
     const response = await fetch(API_URL, {
       method: "POST",
@@ -33,7 +37,7 @@ const eventService = {
     return data;
   },
 
-  // Get all events
+  /* Retrieve all events, accepts optional filters */
   getAllEvents: async (filters = {}) => {
     const queryParams = new URLSearchParams(filters).toString();
     const url = queryParams ? `${API_URL}?${queryParams}` : API_URL;
@@ -48,7 +52,7 @@ const eventService = {
     return data;
   },
 
-  // Get organizer's events
+  /* Get events for the currently authenticated organizer */
   getMyEvents: async (token) => {
     const response = await fetch(`${API_URL}/organizer/my-events`, {
       headers: {
@@ -65,7 +69,7 @@ const eventService = {
     return data;
   },
 
-  // Get single event
+  /* Get single event (public) */
   getEvent: async (eventId) => {
     const response = await fetch(`${API_URL}/${eventId}`);
     const data = await response.json();
@@ -77,7 +81,7 @@ const eventService = {
     return data;
   },
 
-  // Get event by ID with token
+  /* Get event by ID with authentication header */
   getEventById: async (eventId, token) => {
     const response = await fetch(`${API_URL}/${eventId}`, {
       headers: {
@@ -93,7 +97,7 @@ const eventService = {
     return data;
   },
 
-  // Update event
+  /* Update existing event (organizer only) */
   updateEvent: async (eventId, eventData, token) => {
     const response = await fetch(`${API_URL}/${eventId}`, {
       method: "PUT",
@@ -113,7 +117,7 @@ const eventService = {
     return data;
   },
 
-  // Cancel event (organizers)
+  /* Cancel an event (organizer action) */
   cancelEvent: async (eventId, token) => {
     const response = await fetch(`${API_URL}/${eventId}/cancel`, {
       method: "POST",
@@ -131,7 +135,7 @@ const eventService = {
     return data;
   },
 
-  // Delete event
+  /* Delete event permanently (organizer) */
   deleteEvent: async (eventId, token) => {
     const response = await fetch(`${API_URL}/${eventId}`, {
       method: "DELETE",
@@ -149,7 +153,7 @@ const eventService = {
     return data;
   },
 
-  // Check eligibility for event registration
+  /* Check whether a donor is eligible to register for an event */
   checkEligibility: async (eventId, token) => {
     const response = await fetch(`${API_URL}/${eventId}/check-eligibility`, {
       method: "POST",
@@ -169,7 +173,7 @@ const eventService = {
     return data;
   },
 
-  // Register for event (donors)
+  /* Register the current donor for an event */
   registerForEvent: async (eventId, token) => {
     const response = await fetch(`${API_URL}/${eventId}/register`, {
       method: "POST",
@@ -189,7 +193,7 @@ const eventService = {
     return data;
   },
 
-  // Cancel registration
+  /* Cancel existing donor registration for an event */
   cancelRegistration: async (eventId, token) => {
     const response = await fetch(`${API_URL}/${eventId}/cancel-registration`, {
       method: "POST",

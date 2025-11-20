@@ -1,3 +1,7 @@
+/*
+ * Profile page component
+ * Displays user profile information, achievements, and recent events/donation history.
+ */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaEdit, FaPhone, FaMapMarkerAlt, FaEnvelope, FaTint, FaUser, FaCalendarAlt, FaAward, FaUsers, FaBuilding, FaCalendarCheck } from 'react-icons/fa';
@@ -14,6 +18,7 @@ function Profile() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Fetch the current user's profile (including role-specific calculated fields)
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
@@ -122,10 +127,10 @@ function Profile() {
           <div className="personal-info-layout">
             {/* Left Side - Avatar and Role Badge */}
             <div className="avatar-section">
-              <Avatar 
-                src={profileData?.profilePicture?.url} 
+              <Avatar
+                src={profileData?.profilePicture?.url}
                 name={profileData?.fullName}
-                size="large" 
+                size="large"
               />
               <button className="role-badge">
                 {user.role === 'donor' ? 'Donor' : 'Organizer'}
@@ -181,11 +186,11 @@ function Profile() {
                         <FaCalendarAlt className="info-icon" /> Member Since
                       </div>
                       <div className="info-value">
-                        {profileData?.memberSince 
-                          ? new Date(profileData.memberSince + '-01').toLocaleDateString('en-US', { 
-                              year: 'numeric', 
-                              month: 'long' 
-                            })
+                        {profileData?.memberSince
+                          ? new Date(profileData.memberSince + '-01').toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long'
+                          })
                           : 'Not provided'}
                       </div>
                     </div>
@@ -249,7 +254,7 @@ function Profile() {
           <h2 className="section-title">
             {user.role === 'donor' ? 'Achievements' : 'Organizing Achievements'}
           </h2>
-          
+
           {/* Achievement Cards Grid */}
           <div className="achievements-grid">
             {profileData?.achievements && profileData.achievements.length > 0 ? (
@@ -266,8 +271,8 @@ function Profile() {
               ))
             ) : (
               <div className="no-data-message">
-                {user.role === 'donor' 
-                  ? 'No achievements yet. Register for an event to start your journey!' 
+                {user.role === 'donor'
+                  ? 'No achievements yet. Register for an event to start your journey!'
                   : 'No achievements yet. Create your first event to get started!'}
               </div>
             )}
@@ -279,11 +284,11 @@ function Profile() {
           <h2 className="section-title">
             {user.role === 'donor' ? 'Recent Donation History' : 'Recent Event History'}
           </h2>
-          
+
           {/* Event List */}
           <div className="event-list">
-            {(user.role === 'donor' ? profileData?.donationHistory : profileData?.eventHistory) && 
-             (user.role === 'donor' ? profileData?.donationHistory : profileData?.eventHistory).length > 0 ? (
+            {(user.role === 'donor' ? profileData?.donationHistory : profileData?.eventHistory) &&
+              (user.role === 'donor' ? profileData?.donationHistory : profileData?.eventHistory).length > 0 ? (
               (user.role === 'donor' ? profileData?.donationHistory : profileData?.eventHistory).map((event) => (
                 <div key={event._id} className="profile-event-item">
                   <div className="profile-event-bar"></div>
@@ -302,8 +307,8 @@ function Profile() {
               ))
             ) : (
               <div className="no-data-message">
-                {user.role === 'donor' 
-                  ? 'No donation history yet. Register for an event to begin!' 
+                {user.role === 'donor'
+                  ? 'No donation history yet. Register for an event to begin!'
                   : 'No event history yet. Create your first event!'}
               </div>
             )}

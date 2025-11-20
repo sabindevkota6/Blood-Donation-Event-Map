@@ -1,11 +1,12 @@
+/*
+ * Cloudinary helper config
+ * Validates env variables, configures cloudinary client, and provides upload/delete helpers.
+ */
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
 
-const {
-  CLOUDINARY_CLOUD_NAME,
-  CLOUDINARY_API_KEY,
-  CLOUDINARY_API_SECRET,
-} = process.env;
+const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } =
+  process.env;
 
 const missingEnvVars = [
   ["CLOUDINARY_CLOUD_NAME", CLOUDINARY_CLOUD_NAME],
@@ -20,14 +21,17 @@ if (missingEnvVars.length > 0) {
   );
 }
 
-// Configure Cloudinary
+// Configure the Cloudinary client
 cloudinary.config({
   cloud_name: CLOUDINARY_CLOUD_NAME,
   api_key: CLOUDINARY_API_KEY,
   api_secret: CLOUDINARY_API_SECRET,
 });
 
-// Helper function to upload buffer to Cloudinary with folder organization
+/*
+ * uploadToCloudinary(buffer, folder)
+ * Uploads an image buffer to Cloudinary under an optionally specified folder.
+ */
 const uploadToCloudinary = (buffer, folder = "blood-donation-app/profiles") => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
@@ -48,7 +52,10 @@ const uploadToCloudinary = (buffer, folder = "blood-donation-app/profiles") => {
   });
 };
 
-// Helper function to delete image from Cloudinary
+/*
+ * deleteFromCloudinary(publicId)
+ * Removes an image resource from Cloudinary by its public id.
+ */
 const deleteFromCloudinary = async (publicId) => {
   try {
     const result = await cloudinary.uploader.destroy(publicId);
