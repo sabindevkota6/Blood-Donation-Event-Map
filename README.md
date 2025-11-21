@@ -135,6 +135,3 @@ npm start
 
 **3. Map not loading**
 - Ensure the frontend has internet access to load map tiles.
-
-## License
-This project is licensed under the ISC License.
